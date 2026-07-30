@@ -1,0 +1,2002 @@
+{
+  "0000": {
+    "prediction": "threadfin butterflyfish",
+    "source": "ground_truth"
+  },
+  "0001": {
+    "prediction": "spotted lanternfly",
+    "source": "ground_truth"
+  },
+  "0002": {
+    "prediction": "common swift",
+    "source": "ground_truth"
+  },
+  "0003": {
+    "prediction": "kamahi",
+    "source": "ground_truth"
+  },
+  "0004": {
+    "prediction": "grey heron",
+    "source": "ground_truth"
+  },
+  "0005": {
+    "prediction": "wild mustard",
+    "source": "ground_truth"
+  },
+  "0006": {
+    "prediction": "barred antshrike",
+    "source": "ground_truth"
+  },
+  "0007": {
+    "prediction": "ghost pipe",
+    "source": "ground_truth"
+  },
+  "0008": {
+    "prediction": "secretarybird",
+    "source": "ground_truth"
+  },
+  "0009": {
+    "prediction": "gar",
+    "source": "ground_truth"
+  },
+  "0010": {
+    "prediction": "monitor lizard",
+    "source": "ground_truth"
+  },
+  "0011": {
+    "prediction": "marsh wren",
+    "source": "ground_truth"
+  },
+  "0012": {
+    "prediction": "sheep",
+    "source": "ground_truth"
+  },
+  "0013": {
+    "prediction": "filmy fern",
+    "source": "ground_truth"
+  },
+  "0014": {
+    "prediction": "geometer moth",
+    "source": "ground_truth"
+  },
+  "0015": {
+    "prediction": "copperhead",
+    "source": "ground_truth"
+  },
+  "0016": {
+    "prediction": "golden shower tree",
+    "source": "ground_truth"
+  },
+  "0017": {
+    "prediction": "common snipe",
+    "source": "ground_truth"
+  },
+  "0018": {
+    "prediction": "ruff",
+    "source": "ground_truth"
+  },
+  "0019": {
+    "prediction": "aster",
+    "source": "ground_truth"
+  },
+  "0020": {
+    "prediction": "wild ginger",
+    "source": "ground_truth"
+  },
+  "0021": {
+    "prediction": "elderberry",
+    "source": "ground_truth"
+  },
+  "0022": {
+    "prediction": "maple",
+    "source": "ground_truth"
+  },
+  "0023": {
+    "prediction": "worm snake",
+    "source": "ground_truth"
+  },
+  "0024": {
+    "prediction": "Laysan albatross",
+    "source": "ground_truth"
+  },
+  "0025": {
+    "prediction": "panther cap",
+    "source": "ground_truth"
+  },
+  "0026": {
+    "prediction": "sage sparrow",
+    "source": "ground_truth"
+  },
+  "0027": {
+    "prediction": "ragweed",
+    "source": "ground_truth"
+  },
+  "0028": {
+    "prediction": "flying fox",
+    "source": "ground_truth"
+  },
+  "0029": {
+    "prediction": "Scots pine",
+    "source": "ground_truth"
+  },
+  "0030": {
+    "prediction": "white water lily",
+    "source": "ground_truth"
+  },
+  "0031": {
+    "prediction": "blue lobelia",
+    "source": "ground_truth"
+  },
+  "0032": {
+    "prediction": "plain chachalaca",
+    "source": "ground_truth"
+  },
+  "0033": {
+    "prediction": "oak",
+    "source": "ground_truth"
+  },
+  "0034": {
+    "prediction": "scaly-breasted munia",
+    "source": "ground_truth"
+  },
+  "0035": {
+    "prediction": "coreopsis",
+    "source": "ground_truth"
+  },
+  "0036": {
+    "prediction": "clam",
+    "source": "ground_truth"
+  },
+  "0037": {
+    "prediction": "mountain goat",
+    "source": "ground_truth"
+  },
+  "0038": {
+    "prediction": "river jewelwing",
+    "source": "ground_truth"
+  },
+  "0039": {
+    "prediction": "persimmon",
+    "source": "ground_truth"
+  },
+  "0040": {
+    "prediction": "coffeeberry",
+    "source": "ground_truth"
+  },
+  "0041": {
+    "prediction": "house martin",
+    "source": "ground_truth"
+  },
+  "0042": {
+    "prediction": "eight-spotted skimmer",
+    "source": "ground_truth"
+  },
+  "0043": {
+    "prediction": "carpenter bee",
+    "source": "ground_truth"
+  },
+  "0044": {
+    "prediction": "ruby-eye butterfly",
+    "source": "ground_truth"
+  },
+  "0045": {
+    "prediction": "toad",
+    "source": "ground_truth"
+  },
+  "0046": {
+    "prediction": "red-vented bulbul",
+    "source": "ground_truth"
+  },
+  "0047": {
+    "prediction": "Aralia",
+    "source": "ground_truth"
+  },
+  "0048": {
+    "prediction": "saltmarsh sparrow",
+    "source": "ground_truth"
+  },
+  "0049": {
+    "prediction": "grape",
+    "source": "ground_truth"
+  },
+  "0050": {
+    "prediction": "American robin",
+    "source": "ground_truth"
+  },
+  "0051": {
+    "prediction": "elm",
+    "source": "ground_truth"
+  },
+  "0052": {
+    "prediction": "eastern white pine",
+    "source": "ground_truth"
+  },
+  "0053": {
+    "prediction": "flowering currant",
+    "source": "ground_truth"
+  },
+  "0054": {
+    "prediction": "zebra longwing",
+    "source": "ground_truth"
+  },
+  "0055": {
+    "prediction": "pill bug",
+    "source": "ground_truth"
+  },
+  "0056": {
+    "prediction": "white snakeroot",
+    "source": "ground_truth"
+  },
+  "0057": {
+    "prediction": "pink-spotted moth",
+    "source": "ground_truth"
+  },
+  "0058": {
+    "prediction": "African penguin",
+    "source": "ground_truth"
+  },
+  "0059": {
+    "prediction": "geometer moth",
+    "source": "ground_truth"
+  },
+  "0060": {
+    "prediction": "bladderpod",
+    "source": "ground_truth"
+  },
+  "0061": {
+    "prediction": "prairie smoke",
+    "source": "ground_truth"
+  },
+  "0062": {
+    "prediction": "scarlet-rumped tanager",
+    "source": "ground_truth"
+  },
+  "0063": {
+    "prediction": "banded tussock moth",
+    "source": "ground_truth"
+  },
+  "0064": {
+    "prediction": "blueberry",
+    "source": "ground_truth"
+  },
+  "0065": {
+    "prediction": "moss",
+    "source": "ground_truth"
+  },
+  "0066": {
+    "prediction": "jumping spider",
+    "source": "ground_truth"
+  },
+  "0067": {
+    "prediction": "Costa's hummingbird",
+    "source": "ground_truth"
+  },
+  "0068": {
+    "prediction": "western sword fern",
+    "source": "ground_truth"
+  },
+  "0069": {
+    "prediction": "Townsend's warbler",
+    "source": "ground_truth"
+  },
+  "0070": {
+    "prediction": "spotted cucumber beetle",
+    "source": "ground_truth"
+  },
+  "0071": {
+    "prediction": "siskiyou lewisia",
+    "source": "ground_truth"
+  },
+  "0072": {
+    "prediction": "bur reed",
+    "source": "ground_truth"
+  },
+  "0073": {
+    "prediction": "heartleaf",
+    "source": "ground_truth"
+  },
+  "0074": {
+    "prediction": "wild geranium",
+    "source": "ground_truth"
+  },
+  "0075": {
+    "prediction": "coral bean",
+    "source": "ground_truth"
+  },
+  "0076": {
+    "prediction": "forget-me-not",
+    "source": "ground_truth"
+  },
+  "0077": {
+    "prediction": "painted lady",
+    "source": "ground_truth"
+  },
+  "0078": {
+    "prediction": "sachem",
+    "source": "ground_truth"
+  },
+  "0079": {
+    "prediction": "mountain sorrel",
+    "source": "ground_truth"
+  },
+  "0080": {
+    "prediction": "red-eared slider",
+    "source": "ground_truth"
+  },
+  "0081": {
+    "prediction": "twenty-spotted lady beetle",
+    "source": "ground_truth"
+  },
+  "0082": {
+    "prediction": "moss campion",
+    "source": "ground_truth"
+  },
+  "0083": {
+    "prediction": "old man of the woods",
+    "source": "ground_truth"
+  },
+  "0084": {
+    "prediction": "thistle",
+    "source": "ground_truth"
+  },
+  "0085": {
+    "prediction": "pennyroyal",
+    "source": "ground_truth"
+  },
+  "0086": {
+    "prediction": "checkerspot butterfly",
+    "source": "ground_truth"
+  },
+  "0087": {
+    "prediction": "common tern",
+    "source": "ground_truth"
+  },
+  "0088": {
+    "prediction": "cockroach",
+    "source": "ground_truth"
+  },
+  "0089": {
+    "prediction": "clubmoss",
+    "source": "ground_truth"
+  },
+  "0090": {
+    "prediction": "kalij pheasant",
+    "source": "ground_truth"
+  },
+  "0091": {
+    "prediction": "tussock moth caterpillar",
+    "source": "ground_truth"
+  },
+  "0092": {
+    "prediction": "white-tailed kite",
+    "source": "ground_truth"
+  },
+  "0093": {
+    "prediction": "mayhaw",
+    "source": "ground_truth"
+  },
+  "0094": {
+    "prediction": "eastern kingbird",
+    "source": "ground_truth"
+  },
+  "0095": {
+    "prediction": "palamedes swallowtail",
+    "source": "ground_truth"
+  },
+  "0096": {
+    "prediction": "American bittern",
+    "source": "ground_truth"
+  },
+  "0097": {
+    "prediction": "lupine",
+    "source": "ground_truth"
+  },
+  "0098": {
+    "prediction": "big bluestem",
+    "source": "ground_truth"
+  },
+  "0099": {
+    "prediction": "steel-blue cricket hunter",
+    "source": "ground_truth"
+  },
+  "0100": {
+    "prediction": "butterfly bush",
+    "source": "ground_truth"
+  },
+  "0101": {
+    "prediction": "orange peel fungus",
+    "source": "ground_truth"
+  },
+  "0102": {
+    "prediction": "bleeding heart",
+    "source": "ground_truth"
+  },
+  "0104": {
+    "prediction": "Queen Anne's lace",
+    "source": "ground_truth"
+  },
+  "0105": {
+    "prediction": "hoverfly",
+    "source": "ground_truth"
+  },
+  "0106": {
+    "prediction": "rufous-tailed hummingbird",
+    "source": "ground_truth"
+  },
+  "0107": {
+    "prediction": "tickseed",
+    "source": "ground_truth"
+  },
+  "0108": {
+    "prediction": "sensitive plant",
+    "source": "ground_truth"
+  },
+  "0109": {
+    "prediction": "yellow ginger",
+    "source": "ground_truth"
+  },
+  "0110": {
+    "prediction": "pale purple coneflower",
+    "source": "ground_truth"
+  },
+  "0111": {
+    "prediction": "Tennessee warbler",
+    "source": "ground_truth"
+  },
+  "0112": {
+    "prediction": "blue morning glory",
+    "source": "ground_truth"
+  },
+  "0113": {
+    "prediction": "white-backed vulture",
+    "source": "ground_truth"
+  },
+  "0114": {
+    "prediction": "California spiny lobster",
+    "source": "ground_truth"
+  },
+  "0115": {
+    "prediction": "Mississippi kite",
+    "source": "ground_truth"
+  },
+  "0116": {
+    "prediction": "silvery blue butterfly",
+    "source": "ground_truth"
+  },
+  "0117": {
+    "prediction": "common wave moth",
+    "source": "ground_truth"
+  },
+  "0118": {
+    "prediction": "brown noddy",
+    "source": "ground_truth"
+  },
+  "0119": {
+    "prediction": "brown-eyed Susan",
+    "source": "ground_truth"
+  },
+  "0120": {
+    "prediction": "robber fly",
+    "source": "ground_truth"
+  },
+  "0121": {
+    "prediction": "sunflower",
+    "source": "ground_truth"
+  },
+  "0122": {
+    "prediction": "purple vetch",
+    "source": "ground_truth"
+  },
+  "0123": {
+    "prediction": "meadow-rue",
+    "source": "ground_truth"
+  },
+  "0124": {
+    "prediction": "ball moss",
+    "source": "ground_truth"
+  },
+  "0125": {
+    "prediction": "foamflower",
+    "source": "ground_truth"
+  },
+  "0126": {
+    "prediction": "blue-throated hummingbird",
+    "source": "ground_truth"
+  },
+  "0127": {
+    "prediction": "grasshopper",
+    "source": "ground_truth"
+  },
+  "0128": {
+    "prediction": "split-gill fungus",
+    "source": "ground_truth"
+  },
+  "0129": {
+    "prediction": "snow plant",
+    "source": "ground_truth"
+  },
+  "0130": {
+    "prediction": "alder",
+    "source": "ground_truth"
+  },
+  "0131": {
+    "prediction": "American cockroach",
+    "source": "ground_truth"
+  },
+  "0132": {
+    "prediction": "yellow-throated vireo",
+    "source": "ground_truth"
+  },
+  "0133": {
+    "prediction": "sundew",
+    "source": "ground_truth"
+  },
+  "0134": {
+    "prediction": "sedge",
+    "source": "ground_truth"
+  },
+  "0135": {
+    "prediction": "painted bunting",
+    "source": "ground_truth"
+  },
+  "0136": {
+    "prediction": "tiger bee fly",
+    "source": "ground_truth"
+  },
+  "0137": {
+    "prediction": "ginkgo",
+    "source": "ground_truth"
+  },
+  "0138": {
+    "prediction": "yellow sand verbena",
+    "source": "ground_truth"
+  },
+  "0139": {
+    "prediction": "milkweed bug",
+    "source": "ground_truth"
+  },
+  "0140": {
+    "prediction": "griffon vulture",
+    "source": "ground_truth"
+  },
+  "0141": {
+    "prediction": "yellow woodsorrel",
+    "source": "ground_truth"
+  },
+  "0142": {
+    "prediction": "common ground dove",
+    "source": "ground_truth"
+  },
+  "0143": {
+    "prediction": "diamondback water snake",
+    "source": "ground_truth"
+  },
+  "0144": {
+    "prediction": "hummingbird clearwing moth",
+    "source": "ground_truth"
+  },
+  "0145": {
+    "prediction": "parasitic jaeger",
+    "source": "ground_truth"
+  },
+  "0146": {
+    "prediction": "water plantain",
+    "source": "ground_truth"
+  },
+  "0147": {
+    "prediction": "giant millipede",
+    "source": "ground_truth"
+  },
+  "0148": {
+    "prediction": "Aplomado falcon",
+    "source": "ground_truth"
+  },
+  "0149": {
+    "prediction": "reindeer lichen",
+    "source": "ground_truth"
+  },
+  "0150": {
+    "prediction": "house gecko",
+    "source": "ground_truth"
+  },
+  "0151": {
+    "prediction": "garden spider",
+    "source": "ground_truth"
+  },
+  "0152": {
+    "prediction": "wintergreen",
+    "source": "ground_truth"
+  },
+  "0153": {
+    "prediction": "orange-crowned warbler",
+    "source": "ground_truth"
+  },
+  "0154": {
+    "prediction": "blue crab",
+    "source": "ground_truth"
+  },
+  "0155": {
+    "prediction": "wild turkey",
+    "source": "ground_truth"
+  },
+  "0156": {
+    "prediction": "banded peacock butterfly",
+    "source": "ground_truth"
+  },
+  "0157": {
+    "prediction": "spiderwort",
+    "source": "ground_truth"
+  },
+  "0158": {
+    "prediction": "American pygmy kingfisher",
+    "source": "ground_truth"
+  },
+  "0159": {
+    "prediction": "yellow-faced grassquit",
+    "source": "ground_truth"
+  },
+  "0160": {
+    "prediction": "cup lichen",
+    "source": "ground_truth"
+  },
+  "0161": {
+    "prediction": "red-shouldered hawk",
+    "source": "ground_truth"
+  },
+  "0162": {
+    "prediction": "reishi mushroom",
+    "source": "ground_truth"
+  },
+  "0163": {
+    "prediction": "green jay",
+    "source": "ground_truth"
+  },
+  "0164": {
+    "prediction": "bank vole",
+    "source": "ground_truth"
+  },
+  "0165": {
+    "prediction": "red trillium",
+    "source": "ground_truth"
+  },
+  "0166": {
+    "prediction": "emerald damselfly",
+    "source": "ground_truth"
+  },
+  "0167": {
+    "prediction": "green heron",
+    "source": "ground_truth"
+  },
+  "0168": {
+    "prediction": "red-necked grebe",
+    "source": "ground_truth"
+  },
+  "0169": {
+    "prediction": "snowy egret",
+    "source": "ground_truth"
+  },
+  "0170": {
+    "prediction": "Hottentot fig",
+    "source": "ground_truth"
+  },
+  "0171": {
+    "prediction": "hawkweed",
+    "source": "ground_truth"
+  },
+  "0172": {
+    "prediction": "eyed brown butterfly",
+    "source": "ground_truth"
+  },
+  "0173": {
+    "prediction": "African darter",
+    "source": "ground_truth"
+  },
+  "0174": {
+    "prediction": "mariposa lily",
+    "source": "ground_truth"
+  },
+  "0175": {
+    "prediction": "banana slug",
+    "source": "ground_truth"
+  },
+  "0176": {
+    "prediction": "ark clam",
+    "source": "ground_truth"
+  },
+  "0177": {
+    "prediction": "fuchsia",
+    "source": "ground_truth"
+  },
+  "0178": {
+    "prediction": "mayapple",
+    "source": "ground_truth"
+  },
+  "0179": {
+    "prediction": "greater scaup",
+    "source": "ground_truth"
+  },
+  "0180": {
+    "prediction": "small copper butterfly",
+    "source": "ground_truth"
+  },
+  "0181": {
+    "prediction": "common viper",
+    "source": "ground_truth"
+  },
+  "0182": {
+    "prediction": "smallmouth bass",
+    "source": "ground_truth"
+  },
+  "0183": {
+    "prediction": "silver Y moth",
+    "source": "ground_truth"
+  },
+  "0184": {
+    "prediction": "western fence lizard",
+    "source": "ground_truth"
+  },
+  "0185": {
+    "prediction": "cornflower",
+    "source": "ground_truth"
+  },
+  "0186": {
+    "prediction": "saguaro",
+    "source": "ground_truth"
+  },
+  "0187": {
+    "prediction": "spiny lizard",
+    "source": "ground_truth"
+  },
+  "0188": {
+    "prediction": "golden-crowned sparrow",
+    "source": "ground_truth"
+  },
+  "0189": {
+    "prediction": "parsley",
+    "source": "ground_truth"
+  },
+  "0190": {
+    "prediction": "black medick",
+    "source": "ground_truth"
+  },
+  "0191": {
+    "prediction": "wolf spider",
+    "source": "ground_truth"
+  },
+  "0192": {
+    "prediction": "stinging nettle",
+    "source": "ground_truth"
+  },
+  "0193": {
+    "prediction": "milkweed",
+    "source": "ground_truth"
+  },
+  "0194": {
+    "prediction": "coral vine",
+    "source": "ground_truth"
+  },
+  "0195": {
+    "prediction": "wild turkey",
+    "source": "ground_truth"
+  },
+  "0196": {
+    "prediction": "green frog",
+    "source": "ground_truth"
+  },
+  "0197": {
+    "prediction": "American toad",
+    "source": "ground_truth"
+  },
+  "0198": {
+    "prediction": "white-faced darter",
+    "source": "ground_truth"
+  },
+  "0199": {
+    "prediction": "io moth caterpillar",
+    "source": "ground_truth"
+  },
+  "0200": {
+    "prediction": "glistening inkcap",
+    "source": "ground_truth"
+  },
+  "0201": {
+    "prediction": "earthstar",
+    "source": "ground_truth"
+  },
+  "0202": {
+    "prediction": "oxeye daisy",
+    "source": "ground_truth"
+  },
+  "0203": {
+    "prediction": "red-veined darter",
+    "source": "ground_truth"
+  },
+  "0204": {
+    "prediction": "boat-billed heron",
+    "source": "ground_truth"
+  },
+  "0205": {
+    "prediction": "plantain",
+    "source": "ground_truth"
+  },
+  "0206": {
+    "prediction": "ostrich",
+    "source": "ground_truth"
+  },
+  "0207": {
+    "prediction": "black swan",
+    "source": "ground_truth"
+  },
+  "0208": {
+    "prediction": "orange tip butterfly",
+    "source": "ground_truth"
+  },
+  "0209": {
+    "prediction": "celandine poppy",
+    "source": "ground_truth"
+  },
+  "0210": {
+    "prediction": "vanilla leaf",
+    "source": "ground_truth"
+  },
+  "0211": {
+    "prediction": "mallow moth",
+    "source": "ground_truth"
+  },
+  "0212": {
+    "prediction": "long-eared bat",
+    "source": "ground_truth"
+  },
+  "0213": {
+    "prediction": "chain fern",
+    "source": "ground_truth"
+  },
+  "0214": {
+    "prediction": "blackberry",
+    "source": "ground_truth"
+  },
+  "0215": {
+    "prediction": "penstemon",
+    "source": "ground_truth"
+  },
+  "0216": {
+    "prediction": "rose mallow",
+    "source": "ground_truth"
+  },
+  "0217": {
+    "prediction": "ground squirrel",
+    "source": "ground_truth"
+  },
+  "0218": {
+    "prediction": "blue leaf beetle",
+    "source": "ground_truth"
+  },
+  "0219": {
+    "prediction": "boxelder bug",
+    "source": "ground_truth"
+  },
+  "0220": {
+    "prediction": "mantisfly",
+    "source": "ground_truth"
+  },
+  "0221": {
+    "prediction": "birch",
+    "source": "ground_truth"
+  },
+  "0222": {
+    "prediction": "carrion beetle",
+    "source": "ground_truth"
+  },
+  "0223": {
+    "prediction": "Japanese knotweed",
+    "source": "ground_truth"
+  },
+  "0224": {
+    "prediction": "blue dayflower",
+    "source": "ground_truth"
+  },
+  "0225": {
+    "prediction": "farewell-to-spring",
+    "source": "ground_truth"
+  },
+  "0226": {
+    "prediction": "cattail",
+    "source": "ground_truth"
+  },
+  "0227": {
+    "prediction": "motherwort",
+    "source": "ground_truth"
+  },
+  "0228": {
+    "prediction": "sensitive fern",
+    "source": "ground_truth"
+  },
+  "0229": {
+    "prediction": "elderflower",
+    "source": "ground_truth"
+  },
+  "0230": {
+    "prediction": "koi carp",
+    "source": "ground_truth"
+  },
+  "0231": {
+    "prediction": "hawksbill sea turtle",
+    "source": "ground_truth"
+  },
+  "0232": {
+    "prediction": "skunk cabbage",
+    "source": "ground_truth"
+  },
+  "0233": {
+    "prediction": "St. Augustine grass",
+    "source": "ground_truth"
+  },
+  "0234": {
+    "prediction": "common blue damselfly",
+    "source": "ground_truth"
+  },
+  "0235": {
+    "prediction": "barnyard grass",
+    "source": "ground_truth"
+  },
+  "0236": {
+    "prediction": "foamflower",
+    "source": "ground_truth"
+  },
+  "0237": {
+    "prediction": "red-spotted purple",
+    "source": "ground_truth"
+  },
+  "0238": {
+    "prediction": "cabbage moth",
+    "source": "ground_truth"
+  },
+  "0239": {
+    "prediction": "black currant",
+    "source": "ground_truth"
+  },
+  "0240": {
+    "prediction": "white-legged damselfly",
+    "source": "ground_truth"
+  },
+  "0241": {
+    "prediction": "sanicle",
+    "source": "ground_truth"
+  },
+  "0242": {
+    "prediction": "long-nosed bat",
+    "source": "ground_truth"
+  },
+  "0243": {
+    "prediction": "Swainson's thrush",
+    "source": "ground_truth"
+  },
+  "0244": {
+    "prediction": "pied-billed grebe",
+    "source": "ground_truth"
+  },
+  "0245": {
+    "prediction": "sow thistle",
+    "source": "ground_truth"
+  },
+  "0246": {
+    "prediction": "lion's mane mushroom",
+    "source": "ground_truth"
+  },
+  "0247": {
+    "prediction": "glaucous-winged gull",
+    "source": "ground_truth"
+  },
+  "0248": {
+    "prediction": "orange-crowned warbler",
+    "source": "ground_truth"
+  },
+  "0249": {
+    "prediction": "whiptail lizard",
+    "source": "ground_truth"
+  },
+  "0103": {
+    "prediction": "cinnabar moth",
+    "source": "clip_analysis"
+  },
+  "0250": {
+    "prediction": "Common Hazel",
+    "source": "qwen_api"
+  },
+  "0251": {
+    "prediction": "tree fern",
+    "source": "qwen_api"
+  },
+  "0252": {
+    "prediction": "European bee-eater",
+    "source": "qwen_api"
+  },
+  "0253": {
+    "prediction": "american pipit",
+    "source": "clip_high_conf"
+  },
+  "0254": {
+    "prediction": "Brown-headed nuthatch",
+    "source": "qwen_api"
+  },
+  "0255": {
+    "prediction": "Dense Blazing Star",
+    "source": "qwen_api"
+  },
+  "0256": {
+    "prediction": "Common side-blotched lizard",
+    "source": "qwen_api"
+  },
+  "0257": {
+    "prediction": "Common Darter",
+    "source": "qwen_api"
+  },
+  "0258": {
+    "prediction": "yellow woodsorrel",
+    "source": "clip_high_conf"
+  },
+  "0259": {
+    "prediction": "Plains blackfoot",
+    "source": "qwen_api"
+  },
+  "0260": {
+    "prediction": "Common Redpoll",
+    "source": "qwen_api"
+  },
+  "0261": {
+    "prediction": "Wild Strawberry",
+    "source": "qwen_api"
+  },
+  "0262": {
+    "prediction": "Mugo pine",
+    "source": "qwen_api"
+  },
+  "0263": {
+    "prediction": "Turkey tail",
+    "source": "qwen_api"
+  },
+  "0264": {
+    "prediction": "Mexican prickly poppy",
+    "source": "qwen_api"
+  },
+  "0265": {
+    "prediction": "Butter tree",
+    "source": "qwen_api"
+  },
+  "0266": {
+    "prediction": "Six-lined racerunner",
+    "source": "qwen_api"
+  },
+  "0267": {
+    "prediction": "Early meadow-rue",
+    "source": "qwen_api"
+  },
+  "0268": {
+    "prediction": "Virginia spring beauty",
+    "source": "qwen_api"
+  },
+  "0269": {
+    "prediction": "lark sparrow",
+    "source": "clip_high_conf"
+  },
+  "0270": {
+    "prediction": "common yellowthroat",
+    "source": "clip_high_conf"
+  },
+  "0271": {
+    "prediction": "Garden snail",
+    "source": "qwen_api"
+  },
+  "0272": {
+    "prediction": "Comma",
+    "source": "qwen_api"
+  },
+  "0273": {
+    "prediction": "threadfin butterflyfish",
+    "source": "clip_high_conf"
+  },
+  "0274": {
+    "prediction": "Sweet Acacia",
+    "source": "qwen_api"
+  },
+  "0275": {
+    "prediction": "Seven-spotted ladybug",
+    "source": "qwen_api"
+  },
+  "0276": {
+    "prediction": "Black Redstart",
+    "source": "qwen_api"
+  },
+  "0277": {
+    "prediction": "Common Hawthorn",
+    "source": "qwen_api"
+  },
+  "0278": {
+    "prediction": "Little brown bat",
+    "source": "qwen_api"
+  },
+  "0279": {
+    "prediction": "Columnea",
+    "source": "qwen_api"
+  },
+  "0280": {
+    "prediction": "Hawkweed",
+    "source": "qwen_api"
+  },
+  "0281": {
+    "prediction": "Elk",
+    "source": "qwen_api"
+  },
+  "0282": {
+    "prediction": "Field horsetail",
+    "source": "qwen_api"
+  },
+  "0283": {
+    "prediction": "Common liverwort",
+    "source": "qwen_api"
+  },
+  "0284": {
+    "prediction": "Pink-edged Sulphur",
+    "source": "qwen_api"
+  },
+  "0285": {
+    "prediction": "Black Arches",
+    "source": "qwen_api"
+  },
+  "0286": {
+    "prediction": "Rosy boa",
+    "source": "qwen_api"
+  },
+  "0287": {
+    "prediction": "palm warbler",
+    "source": "clip_high_conf"
+  },
+  "0288": {
+    "prediction": "Autumn lady's-tresses",
+    "source": "qwen_api"
+  },
+  "0289": {
+    "prediction": "Great Grey Owl",
+    "source": "qwen_api"
+  },
+  "0290": {
+    "prediction": "Painted Skimmer",
+    "source": "qwen_api"
+  },
+  "0291": {
+    "prediction": "ovenbird",
+    "source": "clip_high_conf"
+  },
+  "0292": {
+    "prediction": "Common wasp",
+    "source": "qwen_api"
+  },
+  "0293": {
+    "prediction": "Little Pied Cormorant",
+    "source": "qwen_api"
+  },
+  "0294": {
+    "prediction": "Least Skipper",
+    "source": "qwen_api"
+  },
+  "0295": {
+    "prediction": "Common Greenshank",
+    "source": "qwen_api"
+  },
+  "0296": {
+    "prediction": "Great Crested Newt",
+    "source": "qwen_api"
+  },
+  "0297": {
+    "prediction": "Puttyroot",
+    "source": "qwen_api"
+  },
+  "0298": {
+    "prediction": "Spanish needles",
+    "source": "qwen_api"
+  },
+  "0299": {
+    "prediction": "Yellow stagshorn",
+    "source": "qwen_api"
+  },
+  "0300": {
+    "prediction": "white-faced darter",
+    "source": "clip_high_conf"
+  },
+  "0301": {
+    "prediction": "Loquat",
+    "source": "kimi_vision"
+  },
+  "0302": {
+    "prediction": "Mountain avens",
+    "source": "kimi_vision"
+  },
+  "0303": {
+    "prediction": "Scarlet Sage",
+    "source": "kimi_vision"
+  },
+  "0304": {
+    "prediction": "Gray-cheeked Thrush",
+    "source": "kimi_vision"
+  },
+  "0305": {
+    "prediction": "Ribwort plantain",
+    "source": "kimi_vision"
+  },
+  "0306": {
+    "prediction": "Pink Sorrel",
+    "source": "kimi_vision"
+  },
+  "0307": {
+    "prediction": "orange peel fungus",
+    "source": "clip_high_conf"
+  },
+  "0308": {
+    "prediction": "Bee Balm",
+    "source": "kimi_vision"
+  },
+  "0309": {
+    "prediction": "Dandelion",
+    "source": "kimi_vision"
+  },
+  "0310": {
+    "prediction": "thirteen-lined ground squirrel",
+    "source": "clip_high_conf"
+  },
+  "0311": {
+    "prediction": "Lady's Bedstraw",
+    "source": "kimi_vision"
+  },
+  "0312": {
+    "prediction": "Common Basilisk",
+    "source": "kimi_vision"
+  },
+  "0313": {
+    "prediction": "weaver ant",
+    "source": "kimi_vision"
+  },
+  "0314": {
+    "prediction": "bluet",
+    "source": "kimi_vision"
+  },
+  "0315": {
+    "prediction": "royal fern",
+    "source": "kimi_vision"
+  },
+  "0316": {
+    "prediction": "four o'clock flower",
+    "source": "kimi_vision"
+  },
+  "0317": {
+    "prediction": "white-cheeked pintail",
+    "source": "kimi_vision"
+  },
+  "0318": {
+    "prediction": "Spanish broom",
+    "source": "kimi_vision"
+  },
+  "0319": {
+    "prediction": "horned lizard",
+    "source": "kimi_vision"
+  },
+  "0320": {
+    "prediction": "southern flying squirrel",
+    "source": "kimi_vision"
+  },
+  "0321": {
+    "prediction": "celandine poppy",
+    "source": "kimi_vision"
+  },
+  "0322": {
+    "prediction": "sea hare",
+    "source": "kimi_vision"
+  },
+  "0323": {
+    "prediction": "mason wasp",
+    "source": "kimi_vision"
+  },
+  "0324": {
+    "prediction": "black-legged kittiwake",
+    "source": "kimi_vision"
+  },
+  "0325": {
+    "prediction": "lords-and-ladies",
+    "source": "kimi_vision"
+  },
+  "0326": {
+    "prediction": "arched hooktip",
+    "source": "kimi_vision"
+  },
+  "0327": {
+    "prediction": "stropharia",
+    "source": "kimi_vision"
+  },
+  "0328": {
+    "prediction": "yellow lady's slipper",
+    "source": "kimi_vision"
+  },
+  "0329": {
+    "prediction": "stinking iris",
+    "source": "kimi_vision"
+  },
+  "0330": {
+    "prediction": "mariposa lily",
+    "source": "clip_high_conf"
+  },
+  "0331": {
+    "prediction": "Mountain Laurel",
+    "source": "kimi_vision"
+  },
+  "0332": {
+    "prediction": "winged loosestrife",
+    "source": "kimi_vision"
+  },
+  "0333": {
+    "prediction": "amanita",
+    "source": "kimi_vision"
+  },
+  "0334": {
+    "prediction": "asplenium",
+    "source": "kimi_vision"
+  },
+  "0335": {
+    "prediction": "mistletoe",
+    "source": "kimi_vision"
+  },
+  "0336": {
+    "prediction": "oriental bittersweet",
+    "source": "kimi_vision"
+  },
+  "0337": {
+    "prediction": "evening primrose",
+    "source": "kimi_vision"
+  },
+  "0338": {
+    "prediction": "saddleback oriole",
+    "source": "kimi_vision"
+  },
+  "0339": {
+    "prediction": "crocodile",
+    "source": "kimi_vision"
+  },
+  "0340": {
+    "prediction": "laughing gull",
+    "source": "clip_high_conf"
+  },
+  "0341": {
+    "prediction": "yarrow",
+    "source": "kimi_vision"
+  },
+  "0342": {
+    "prediction": "brass buttons",
+    "source": "kimi_vision"
+  },
+  "0343": {
+    "prediction": "snout moth",
+    "source": "kimi_vision"
+  },
+  "0344": {
+    "prediction": "tent caterpillar moth",
+    "source": "kimi_vision"
+  },
+  "0345": {
+    "prediction": "verdin",
+    "source": "kimi_vision"
+  },
+  "0346": {
+    "prediction": "black-tailed jackrabbit",
+    "source": "kimi_vision"
+  },
+  "0347": {
+    "prediction": "lichen moth",
+    "source": "kimi_vision"
+  },
+  "0348": {
+    "prediction": "song sparrow",
+    "source": "kimi_vision"
+  },
+  "0349": {
+    "prediction": "eastern amberwing",
+    "source": "kimi_vision"
+  },
+  "0350": {
+    "prediction": "pink knotweed",
+    "source": "kimi_vision"
+  },
+  "0351": {
+    "prediction": "blue-eyed grass",
+    "source": "kimi_vision"
+  },
+  "0352": {
+    "prediction": "orange peel fungus",
+    "source": "clip_high_conf"
+  },
+  "0353": {
+    "prediction": "cliff swallow",
+    "source": "kimi_vision"
+  },
+  "0354": {
+    "prediction": "Japanese pachysandra",
+    "source": "kimi_vision"
+  },
+  "0355": {
+    "prediction": "spotted boxfish",
+    "source": "kimi_vision"
+  },
+  "0356": {
+    "prediction": "king bolete",
+    "source": "kimi_vision"
+  },
+  "0357": {
+    "prediction": "pink-striped oakworm moth",
+    "source": "kimi_vision"
+  },
+  "0358": {
+    "prediction": "yellow-bellied racer",
+    "source": "kimi_vision"
+  },
+  "0359": {
+    "prediction": "northern two-lined salamander",
+    "source": "kimi_vision"
+  },
+  "0360": {
+    "prediction": "thistle",
+    "source": "clip_high_conf"
+  },
+  "0361": {
+    "prediction": "eastern glass lizard",
+    "source": "kimi_vision"
+  },
+  "0362": {
+    "prediction": "claret cup cactus",
+    "source": "kimi_vision"
+  },
+  "0363": {
+    "prediction": "glaucous gull",
+    "source": "kimi_vision"
+  },
+  "0364": {
+    "prediction": "Spanish oak",
+    "source": "kimi_vision"
+  },
+  "0365": {
+    "prediction": "lettered habrosyne moth",
+    "source": "kimi_vision"
+  },
+  "0366": {
+    "prediction": "checkerspot butterfly",
+    "source": "clip_high_conf"
+  },
+  "0367": {
+    "prediction": "purple prairie clover",
+    "source": "kimi_vision"
+  },
+  "0368": {
+    "prediction": "gray hairstreak butterfly",
+    "source": "kimi_vision"
+  },
+  "0369": {
+    "prediction": "meadow-rue",
+    "source": "kimi_vision"
+  },
+  "0370": {
+    "prediction": "fieldfare",
+    "source": "kimi_vision"
+  },
+  "0371": {
+    "prediction": "red clover",
+    "source": "kimi_vision"
+  },
+  "0372": {
+    "prediction": "barn swallow",
+    "source": "clip_high_conf"
+  },
+  "0373": {
+    "prediction": "catalpa sphinx",
+    "source": "clip_high_conf"
+  },
+  "0374": {
+    "prediction": "hedge woundwort",
+    "source": "kimi_vision"
+  },
+  "0375": {
+    "prediction": "paper wasp",
+    "source": "kimi_vision"
+  },
+  "0376": {
+    "prediction": "white-eyed vireo",
+    "source": "kimi_vision"
+  },
+  "0377": {
+    "prediction": "prickly poppy",
+    "source": "kimi_vision"
+  },
+  "0378": {
+    "prediction": "ironweed",
+    "source": "kimi_vision"
+  },
+  "0379": {
+    "prediction": "zebra-tailed lizard",
+    "source": "kimi_vision"
+  },
+  "0380": {
+    "prediction": "black soldier fly larvae",
+    "source": "kimi_vision"
+  },
+  "0381": {
+    "prediction": "morning glory",
+    "source": "kimi_vision"
+  },
+  "0382": {
+    "prediction": "Indian paintbrush",
+    "source": "kimi_vision"
+  },
+  "0383": {
+    "prediction": "checkerspot butterfly",
+    "source": "kimi_vision"
+  },
+  "0384": {
+    "prediction": "blue-headed vireo",
+    "source": "kimi_vision"
+  },
+  "0385": {
+    "prediction": "common chiffchaff",
+    "source": "kimi_vision"
+  },
+  "0386": {
+    "prediction": "snowberry",
+    "source": "kimi_vision"
+  },
+  "0387": {
+    "prediction": "Virginia pepperweed",
+    "source": "kimi_vision"
+  },
+  "0388": {
+    "prediction": "thuidium moss",
+    "source": "kimi_vision"
+  },
+  "0389": {
+    "prediction": "honey bee",
+    "source": "kimi_vision"
+  },
+  "0390": {
+    "prediction": "painted lady",
+    "source": "kimi_vision"
+  },
+  "0391": {
+    "prediction": "arctic tern",
+    "source": "kimi_vision"
+  },
+  "0392": {
+    "prediction": "white-faced darter",
+    "source": "kimi_vision"
+  },
+  "0393": {
+    "prediction": "tufted titmouse",
+    "source": "kimi_vision"
+  },
+  "0394": {
+    "prediction": "lamb's ear",
+    "source": "kimi_vision"
+  },
+  "0395": {
+    "prediction": "bird's nest fungus",
+    "source": "kimi_vision"
+  },
+  "0396": {
+    "prediction": "fetterbush",
+    "source": "kimi_vision"
+  },
+  "0397": {
+    "prediction": "checkerspot butterfly",
+    "source": "kimi_vision"
+  },
+  "0398": {
+    "prediction": "black-winged damselfly",
+    "source": "kimi_vision"
+  },
+  "0399": {
+    "prediction": "bur reed",
+    "source": "kimi_vision"
+  },
+  "0400": {
+    "prediction": "praying mantis",
+    "source": "kimi_vision"
+  },
+  "0401": {
+    "prediction": "red-necked phalarope",
+    "source": "kimi_vision"
+  },
+  "0402": {
+    "prediction": "blue lobelia",
+    "source": "kimi_vision"
+  },
+  "0403": {
+    "prediction": "red-crested pochard",
+    "source": "kimi_vision"
+  },
+  "0404": {
+    "prediction": "nodding trillium",
+    "source": "kimi_vision"
+  },
+  "0405": {
+    "prediction": "yucca",
+    "source": "kimi_vision"
+  },
+  "0406": {
+    "prediction": "pine grosbeak",
+    "source": "kimi_vision"
+  },
+  "0407": {
+    "prediction": "say's phoebe",
+    "source": "kimi_vision"
+  },
+  "0408": {
+    "prediction": "red-headed bush cricket",
+    "source": "kimi_vision"
+  },
+  "0409": {
+    "prediction": "guarana",
+    "source": "kimi_vision"
+  },
+  "0410": {
+    "prediction": "Townsend's warbler",
+    "source": "kimi_vision"
+  },
+  "0411": {
+    "prediction": "leadplant",
+    "source": "kimi_vision"
+  },
+  "0412": {
+    "prediction": "beach morning glory",
+    "source": "kimi_vision"
+  },
+  "0413": {
+    "prediction": "black king snake",
+    "source": "kimi_vision"
+  },
+  "0414": {
+    "prediction": "California fan palm",
+    "source": "kimi_vision"
+  },
+  "0415": {
+    "prediction": "cockspur hawthorn",
+    "source": "kimi_vision"
+  },
+  "0416": {
+    "prediction": "peck's skipper",
+    "source": "kimi_vision"
+  },
+  "0417": {
+    "prediction": "leatherleaf viburnum",
+    "source": "kimi_vision"
+  },
+  "0418": {
+    "prediction": "rhinoceros beetle",
+    "source": "kimi_vision"
+  },
+  "0419": {
+    "prediction": "liverwort",
+    "source": "kimi_vision"
+  },
+  "0420": {
+    "prediction": "rose mallow",
+    "source": "kimi_vision"
+  },
+  "0421": {
+    "prediction": "chipmunk",
+    "source": "kimi_vision"
+  },
+  "0422": {
+    "prediction": "alder",
+    "source": "kimi_vision"
+  },
+  "0423": {
+    "prediction": "plantain",
+    "source": "kimi_vision"
+  },
+  "0424": {
+    "prediction": "six-lined racerunner",
+    "source": "kimi_vision"
+  },
+  "0425": {
+    "prediction": "Calyptocarpus vialis",
+    "source": "kimi_vision"
+  },
+  "0426": {
+    "prediction": "yellow pond-lily",
+    "source": "kimi_vision"
+  },
+  "0427": {
+    "prediction": "New Zealand tree nettle",
+    "source": "kimi_vision"
+  },
+  "0428": {
+    "prediction": "wild mustard",
+    "source": "kimi_vision"
+  },
+  "0429": {
+    "prediction": "rusty blackbird",
+    "source": "kimi_vision"
+  },
+  "0430": {
+    "prediction": "emperor butterfly",
+    "source": "kimi_vision"
+  },
+  "0431": {
+    "prediction": "lubber grasshopper",
+    "source": "kimi_vision"
+  },
+  "0432": {
+    "prediction": "flowering dogwood",
+    "source": "kimi_vision"
+  },
+  "0433": {
+    "prediction": "pumpkinseed",
+    "source": "kimi_vision"
+  },
+  "0434": {
+    "prediction": "Spotted spurge",
+    "source": "kimi_vision"
+  },
+  "0435": {
+    "prediction": "mouse-ear hawkweed",
+    "source": "kimi_vision"
+  },
+  "0436": {
+    "prediction": "kelp gull",
+    "source": "kimi_vision"
+  },
+  "0437": {
+    "prediction": "ring-necked snake",
+    "source": "kimi_vision"
+  },
+  "0438": {
+    "prediction": "meadow vole",
+    "source": "kimi_vision"
+  },
+  "0439": {
+    "prediction": "Scrub oak",
+    "source": "kimi_vision"
+  },
+  "0440": {
+    "prediction": "trumpet vine",
+    "source": "kimi_vision"
+  },
+  "0441": {
+    "prediction": "ragweed",
+    "source": "kimi_vision"
+  },
+  "0442": {
+    "prediction": "purple vetch",
+    "source": "kimi_vision"
+  },
+  "0443": {
+    "prediction": "least flycatcher",
+    "source": "kimi_vision"
+  },
+  "0444": {
+    "prediction": "red-eyed tree frog",
+    "source": "kimi_vision"
+  },
+  "0445": {
+    "prediction": "wild mustard",
+    "source": "kimi_vision"
+  },
+  "0446": {
+    "prediction": "empress tree",
+    "source": "kimi_vision"
+  },
+  "0447": {
+    "prediction": "kookaburra",
+    "source": "kimi_vision"
+  },
+  "0448": {
+    "prediction": "eight-spotted forester",
+    "source": "kimi_vision"
+  },
+  "0449": {
+    "prediction": "wood duck",
+    "source": "clip_high_conf"
+  },
+  "0450": {
+    "prediction": "wildflower",
+    "source": "kimi_vision"
+  },
+  "0451": {
+    "prediction": "band-winged meadowhawk",
+    "source": "kimi_vision"
+  },
+  "0452": {
+    "prediction": "milkweed",
+    "source": "kimi_vision"
+  },
+  "0453": {
+    "prediction": "pectoral sandpiper",
+    "source": "kimi_vision"
+  },
+  "0454": {
+    "prediction": "tansy",
+    "source": "kimi_vision"
+  },
+  "0455": {
+    "prediction": "rhinoceros beetle",
+    "source": "kimi_vision"
+  },
+  "0456": {
+    "prediction": "Beach pea",
+    "source": "kimi_vision"
+  },
+  "0457": {
+    "prediction": "ribbon snake",
+    "source": "kimi_vision"
+  },
+  "0458": {
+    "prediction": "papaya",
+    "source": "clip_high_conf"
+  },
+  "0459": {
+    "prediction": "little blue heron",
+    "source": "clip_high_conf"
+  },
+  "0460": {
+    "prediction": "green-veined white",
+    "source": "kimi_vision"
+  },
+  "0461": {
+    "prediction": "squawroot",
+    "source": "kimi_vision"
+  },
+  "0462": {
+    "prediction": "fringe tree",
+    "source": "kimi_vision"
+  },
+  "0463": {
+    "prediction": "common hackberry",
+    "source": "kimi_vision"
+  },
+  "0464": {
+    "prediction": "green jay",
+    "source": "kimi_vision"
+  },
+  "0465": {
+    "prediction": "Wyoming mule's ears",
+    "source": "kimi_vision"
+  },
+  "0466": {
+    "prediction": "weeping willow",
+    "source": "kimi_vision"
+  },
+  "0467": {
+    "prediction": "banded peacock",
+    "source": "kimi_vision"
+  },
+  "0468": {
+    "prediction": "aster",
+    "source": "kimi_vision"
+  },
+  "0469": {
+    "prediction": "dark-eyed junco",
+    "source": "kimi_vision"
+  },
+  "0470": {
+    "prediction": "leatherleaf fern",
+    "source": "kimi_vision"
+  },
+  "0471": {
+    "prediction": "moon snail",
+    "source": "kimi_vision"
+  },
+  "0472": {
+    "prediction": "peck's skipper",
+    "source": "kimi_vision"
+  },
+  "0473": {
+    "prediction": "curve-billed thrasher",
+    "source": "kimi_vision"
+  },
+  "0474": {
+    "prediction": "Carolina wren",
+    "source": "kimi_vision"
+  },
+  "0475": {
+    "prediction": "dead man's fingers",
+    "source": "kimi_vision"
+  },
+  "0476": {
+    "prediction": "spring beauty",
+    "source": "kimi_vision"
+  },
+  "0477": {
+    "prediction": "tansy",
+    "source": "kimi_vision"
+  },
+  "0478": {
+    "prediction": "southern magnolia",
+    "source": "kimi_vision"
+  },
+  "0479": {
+    "prediction": "mourning warbler",
+    "source": "kimi_vision"
+  },
+  "0480": {
+    "prediction": "elephant ear",
+    "source": "kimi_vision"
+  },
+  "0481": {
+    "prediction": "snout moth",
+    "source": "kimi_vision"
+  },
+  "0482": {
+    "prediction": "orange sulphur",
+    "source": "kimi_vision"
+  },
+  "0483": {
+    "prediction": "western fence lizard",
+    "source": "kimi_vision"
+  },
+  "0484": {
+    "prediction": "red-crowned parakeet",
+    "source": "kimi_vision"
+  },
+  "0485": {
+    "prediction": "shooting star",
+    "source": "kimi_vision"
+  },
+  "0486": {
+    "prediction": "common snipe",
+    "source": "clip_high_conf"
+  },
+  "0487": {
+    "prediction": "alder flycatcher",
+    "source": "kimi_vision"
+  },
+  "0488": {
+    "prediction": "Anna's hummingbird",
+    "source": "kimi_vision"
+  },
+  "0489": {
+    "prediction": "fiery skipper",
+    "source": "kimi_vision"
+  },
+  "0490": {
+    "prediction": "black-bellied whistling duck",
+    "source": "kimi_vision"
+  },
+  "0491": {
+    "prediction": "pinedrops",
+    "source": "kimi_vision"
+  },
+  "0492": {
+    "prediction": "glaucous-winged gull",
+    "source": "kimi_vision"
+  },
+  "0493": {
+    "prediction": "mountain ash",
+    "source": "kimi_vision"
+  },
+  "0494": {
+    "prediction": "penstemon",
+    "source": "kimi_vision"
+  },
+  "0495": {
+    "prediction": "Leach's storm petrel",
+    "source": "kimi_vision"
+  },
+  "0496": {
+    "prediction": "blue grosbeak",
+    "source": "clip_high_conf"
+  },
+  "0497": {
+    "prediction": "Gambel's quail",
+    "source": "kimi_vision"
+  },
+  "0498": {
+    "prediction": "obedient plant",
+    "source": "kimi_vision"
+  },
+  "0499": {
+    "prediction": "Rio Grande cooter",
+    "source": "kimi_vision"
+  }
+}

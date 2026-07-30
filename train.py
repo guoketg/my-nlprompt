@@ -135,7 +135,6 @@ def setup_cfg(args):
 
     return cfg
 
-
 def main(args):
     cfg = setup_cfg(args)
     if cfg.SEED >= 0:
