@@ -7,8 +7,8 @@ Why this script exists (see request.md, esp. section 四.(三).1 and the note on
           mixed into class folders.
   * PIL can still *open* truncated files (the organisers confirmed this), but such
     files -- and any degenerate image -- may produce invalid CLIP features, so we
-      1. open every image with PIL (LOAD_TRUNCATED_IMAGES = True) and DROP the ones
-         that fail to decode;
+      1. open every image with PIL (LOAD_TRUNCATED_IMAGES = True)
+       and DROP the ones that fail to decode;
       2. run the frozen CLIP image encoder and DROP images whose features are
          NaN / Inf / near-zero-norm (degenerate).
   * We do NOT pre-compute / cache image features here (per project decision). This
@@ -81,6 +81,12 @@ def _collate(batch):
     return batch if batch else None
 
 
+def _worker_init(_):
+    # cgroup quota is only 4 CPUs; without this each worker spawns many torch
+    # threads and they thrash each other (observed 4 img/s instead of ~150).
+    torch.set_num_threads(1)
+
+
 def _scan_split(entries, preprocess, encoder, device, batch_size, num_workers):
     """Encode a split purely for DETECTION. Returns (kept, bad_decode, bad_feature).
 
@@ -92,6 +98,9 @@ def _scan_split(entries, preprocess, encoder, device, batch_size, num_workers):
     loader = torch.utils.data.DataLoader(
         ds, batch_size=batch_size, shuffle=False,
         num_workers=num_workers, collate_fn=_collate, pin_memory=False,
+        prefetch_factor=(8 if num_workers > 0 else None),
+        persistent_workers=(num_workers > 0),
+        worker_init_fn=(_worker_init if num_workers > 0 else None),
     )
 
     encoder.eval()
@@ -122,10 +131,14 @@ def _scan_split(entries, preprocess, encoder, device, batch_size, num_workers):
                     kept.append((fpaths[j], labs[j]))
                 else:
                     bad_feature.append((fpaths[j], labs[j]))
-            dt = time.time() - tb
-            rate = len(batch) / max(1e-6, dt)
-            print(f"  [scan] batch {bi}/{total_batches}  {dt:6.2f}s  "
-                  f"{rate:7.1f} img/s  kept {len(kept)} bad {len(bad_feature)}",
+            gpu_dt = time.time() - tb
+            done = len(kept) + len(bad_feature)
+            wall = time.time() - t_start
+            rate = done / max(1e-6, wall)          # TRUE end-to-end rate (IO + GPU)
+            eta = (len(paths) - done) / max(1e-6, rate)
+            print(f"  [scan] batch {bi}/{total_batches}  gpu {gpu_dt:5.2f}s  "
+                  f"{rate:7.1f} img/s(real)  eta {eta / 60:5.1f}min  "
+                  f"kept {len(kept)} bad {len(bad_feature)}",
                   flush=True)
 
     print(f"  [scan] done in {time.time() - t_start:.1f}s  "
@@ -136,13 +149,18 @@ def _scan_split(entries, preprocess, encoder, device, batch_size, num_workers):
 def main():
     p = argparse.ArgumentParser(description="Clean contest dataset (no feature caching)")
     p.add_argument("--data-root", default="/root/datasets/contest")
-    p.add_argument("--json", default="all_class_predictions.json")
-    p.add_argument("--clip-weights", default="/jsjxylca/user_data/ViT-L-14-336px.pt")
+    p.add_argument("--json", default=None,
+                   help="optional class-name json; if omitted, folder ids are used as dummy names")
+    p.add_argument("--clip-weights", default="/root/weights/ViT-B-32.pt",
+                   help="local fast-disk ViT-B/32 (loads in seconds; the ViT-L on the "
+                        "slow network disk took ~3min to load and 4x longer to run)")
     p.add_argument("--output-dir", default="output/contest_clean")
-    p.add_argument("--resolution", type=int, default=336)
+    p.add_argument("--resolution", type=int, default=224)
     p.add_argument("--batch-size", type=int, default=128)
-    p.add_argument("--num-workers", type=int, default=0,
-                   help="0 = single process (safe for corrupt/truncated images)")
+    p.add_argument("--num-workers", type=int, default=8,
+                   help="parallel image-decoding workers (cgroup CPU quota is 4, so "
+                        "more workers just thrash). Corrupt/truncated images stay "
+                        "safe: failures return None, filtered in the collate fn.")
     p.add_argument("--max-train", type=int, default=0,
                    help="if >0, only clean this many training images (dry-run)")
     p.add_argument("--max-test", type=int, default=0,
@@ -160,7 +178,17 @@ def main():
     clip_model = clip_model.to(device).float()   # this ViT impl forces fp32 internally
     dim = clip_model.visual.output_dim
 
-    classnames, folder_to_idx, keys = load_contest_classnames(args.json)
+    if args.json and os.path.exists(args.json):
+        classnames, folder_to_idx, keys = load_contest_classnames(args.json)
+    else:
+        # no class-name json provided: generate dummy names from folder ids
+        train_dir = os.path.join(args.data_root, "train")
+        keys = sorted([d for d in os.listdir(train_dir)
+                       if os.path.isdir(os.path.join(train_dir, d))],
+                      key=lambda k: int(k))
+        classnames = [f"class {k}" for k in keys]
+        folder_to_idx = {k: i for i, k in enumerate(keys)}
+        print(f"[clean] no class-name json; using {len(keys)} folder ids as dummy names")
 
     # ---------------- train ----------------
     train_entries = build_train_list(args.data_root)   # [(path, label)]

@@ -51,10 +51,22 @@ def parse_args():
     p.add_argument("--output-dir", default=None,
                    help="defaults to the checkpoint's directory")
     p.add_argument("--encode-batch-size", type=int, default=128)
-    p.add_argument("--num-workers", type=int, default=0)
+    p.add_argument("--num-workers", type=int, default=8,
+                   help="parallel image-decoding workers for the one-off in-memory "
+                        "encode (cgroup CPU quota is 4; more workers just thrash)")
     p.add_argument("--batch-size", type=int, default=4096)
     p.add_argument("--topk", type=int, default=5)
     return p.parse_args()
+
+
+def _drop_none_collate(batch):
+    """Module-level (picklable) collate: drop items whose image failed to decode."""
+    return [x for x in batch if x is not None]
+
+
+def _worker_init(_):
+    # cgroup quota is only 4 CPUs; keep each worker single-threaded.
+    torch.set_num_threads(1)
 
 
 @torch.no_grad()
@@ -73,8 +85,11 @@ def encode_test(manifest, data_root, preprocess, encoder, device, batch_size, nu
                 return None
     ds = _Ds()
     loader = DataLoader(ds, batch_size=batch_size, shuffle=False,
-                        num_workers=num_workers, collate_fn=lambda b: [x for x in b if x],
-                        pin_memory=False)
+                        num_workers=num_workers, collate_fn=_drop_none_collate,
+                        pin_memory=False,
+                        prefetch_factor=(8 if num_workers > 0 else None),
+                        persistent_workers=(num_workers > 0),
+                        worker_init_fn=(_worker_init if num_workers > 0 else None))
     encoder.eval()
     dev = next(encoder.parameters()).device
     print(f"[encode] encoder device = {dev} (expect cuda)", flush=True)

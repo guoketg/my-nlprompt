@@ -30,6 +30,7 @@ Run:
 
 import os
 import json
+import time
 import argparse
 import random
 
@@ -51,8 +52,10 @@ def parse_args():
     p.add_argument("--data-root", default="/root/datasets/contest")
     p.add_argument("--json", default="all_class_predictions.json")
     p.add_argument("--clean-manifest", default="output/contest_clean/clean_train_manifest.json")
-    p.add_argument("--clip-weights", default="/jsjxylca/user_data/ViT-L-14-336px.pt")
-    p.add_argument("--resolution", type=int, default=336)
+    p.add_argument("--clip-weights", default="/root/weights/ViT-B-32.pt",
+                   help="local fast-disk ViT-B/32 (loads in seconds; the ViT-L on the "
+                        "slow network disk took ~3min to load and 4x longer to run)")
+    p.add_argument("--resolution", type=int, default=224)
     p.add_argument("--output-dir", default="output/contest")
     # prompt learner
     p.add_argument("--n-ctx", type=int, default=16)
@@ -69,7 +72,9 @@ def parse_args():
     p.add_argument("--seed", type=int, default=1)
     # initial in-memory encode
     p.add_argument("--encode-batch-size", type=int, default=128)
-    p.add_argument("--num-workers", type=int, default=0)
+    p.add_argument("--num-workers", type=int, default=8,
+                   help="parallel image-decoding workers for the one-off in-memory "
+                        "encode (cgroup CPU quota is 4; more workers just thrash)")
     # robustness
     p.add_argument("--gce-q", type=float, default=0.7)
     p.add_argument("--no-selection", action="store_true",
@@ -83,6 +88,16 @@ def parse_args():
     p.add_argument("--max-train", type=int, default=0,
                    help="if >0, only use this many training samples (dry-run)")
     return p.parse_args()
+
+
+def _drop_none_collate(batch):
+    """Module-level (picklable) collate: drop items whose image failed to decode."""
+    return [x for x in batch if x is not None]
+
+
+def _worker_init(_):
+    # cgroup quota is only 4 CPUs; keep each worker single-threaded.
+    torch.set_num_threads(1)
 
 
 def set_seed(seed):
@@ -111,8 +126,11 @@ def encode_manifest(manifest, data_root, preprocess, encoder, device, batch_size
                 return None
     ds = _Ds()
     loader = DataLoader(ds, batch_size=batch_size, shuffle=False,
-                        num_workers=num_workers, collate_fn=lambda b: [x for x in b if x],
-                        pin_memory=False)
+                        num_workers=num_workers, collate_fn=_drop_none_collate,
+                        pin_memory=False,
+                        prefetch_factor=(8 if num_workers > 0 else None),
+                        persistent_workers=(num_workers > 0),
+                        worker_init_fn=(_worker_init if num_workers > 0 else None))
     encoder.eval()
     dev = next(encoder.parameters()).device
     print(f"[encode] encoder device = {dev} (expect cuda)", flush=True)
@@ -139,8 +157,11 @@ def encode_manifest(manifest, data_root, preprocess, encoder, device, batch_size
             kept_idx.append(idxs[j])
         done += len(batch)
         if done % (batch_size * 20) < batch_size:
-            print(f"  [encode] {done}/{n}  "
-                  f"{(time.time() - t0):.0f}s elapsed", flush=True)
+            el = time.time() - t0
+            rate = done / max(1e-6, el)
+            print(f"  [encode] {done}/{n}  {el:.0f}s elapsed  "
+                  f"{rate:.1f} img/s  eta {(n - done) / max(1e-6, rate) / 60:.1f}min",
+                  flush=True)
     F_tensor = torch.stack(feats).float().cpu()
     L_tensor = torch.tensor(kept_labels, dtype=torch.long)
     print(f"[encode] done: {F_tensor.shape[0]} features in {time.time() - t0:.1f}s")

@@ -49,7 +49,7 @@ class TextEncoder(nn.Module):
         x = self.transformer(x)
         x = x.permute(1, 0, 2)
         x = self.ln_final(x).type(self.dtype)
-        x = x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
+        x = x[torch.arange(x.shape[0], device=x.device), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
         return x
 
 
@@ -59,6 +59,10 @@ class PromptLearner(nn.Module):
         super().__init__()
         n_cls = len(classnames)
         dtype = clip_model.dtype
+        # token_embedding lives on whatever device clip_model was placed on; the
+        # tokenized index tensors from clipmod.tokenize() are CPU by default, so we
+        # must move them to the same device or F.embedding raises a device mismatch.
+        device = next(clip_model.token_embedding.parameters()).device
         ctx_dim = clip_model.ln_final.weight.shape[0]
         clip_imsize = clip_model.visual.input_resolution  # we use CLIP's native size
         cfg_imsize = clip_imsize
@@ -68,7 +72,7 @@ class PromptLearner(nn.Module):
         if ctx_init:
             ctx_init = ctx_init.replace("_", " ")
             n_ctx = len(ctx_init.split(" "))
-            prompt = clipmod.tokenize(ctx_init)
+            prompt = clipmod.tokenize(ctx_init).to(device)
             with torch.no_grad():
                 embedding = clip_model.token_embedding(prompt).type(dtype)
             ctx_vectors = embedding[0, 1:1 + n_ctx, :].float()  # fp32 params
@@ -86,7 +90,7 @@ class PromptLearner(nn.Module):
         name_lens = [len(clipmod.tokenize(e)) for e in classnames]
         prompts = [prompt_prefix + " " + name + "." for name in classnames]
 
-        tokenized_prompts = torch.cat([clipmod.tokenize(p) for p in prompts])
+        tokenized_prompts = torch.cat([clipmod.tokenize(p).to(device) for p in prompts])
         with torch.no_grad():
             embedding = clip_model.token_embedding(tokenized_prompts).type(dtype)
 
