@@ -15,6 +15,7 @@ Optional TTA: --tta crops.
 
 import os
 import json
+import time
 import argparse
 import zipfile
 from collections import Counter
@@ -158,7 +159,9 @@ def main():
     with open(args.clean_test_manifest) as f:
         test_manifest = json.load(f)
     paths = [os.path.join(args.data_root, rel) for rel, _ in test_manifest]
-    names = [rel for rel, _ in test_manifest]
+    # strip any "test/" prefix so the submitted csv uses bare filenames
+    names = [rel.split("test/", 1)[-1] if "test/" in rel else os.path.basename(rel)
+             for rel, _ in test_manifest]
 
     # ---- load CLIP ----
     print(f"[test] loading CLIP from {args.clip_weights}")
@@ -192,9 +195,11 @@ def main():
     all_probs = torch.cat(all_probs, dim=0)
     preds_idx = all_probs.argmax(dim=1).tolist()
 
-    # folder ids are just 4-digit class indices
+    # According to format_request.md the submission format has NO header and the
+    # class id is a 4-digit zero-padded string (e.g. 0123). The official backend
+    # does int() on the label column directly, so writing a "label" header would
+    # crash with `invalid literal for int() with base 10: 'label'`.
     with open(os.path.join(output_dir, "pred_results.csv"), "w") as fc:
-        fc.write("filename,label\n")
         for name, pred in zip(names, preds_idx):
             fc.write(f"{name},{pred:04d}\n")
 
