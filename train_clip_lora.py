@@ -267,14 +267,22 @@ def parse_args():
     p.add_argument("--warmup-ratio", type=float, default=0.1)
     p.add_argument("--amp", dest="amp", action="store_true", default=True)
     # dynamic selection
-    p.add_argument("--retention-ratio", type=float, default=0.8)
-    p.add_argument("--proto-keep-ratio", type=float, default=0.5)
-    p.add_argument("--warmup-epochs", type=int, default=5)
+    p.add_argument("--retention-ratio", type=float, default=0.9)
+    p.add_argument("--proto-keep-ratio", type=float, default=0.7)
+    p.add_argument("--warmup-epochs", type=int, default=3)
     p.add_argument("--update-interval", type=int, default=5)
     p.add_argument("--use-dynamic", dest="use_dynamic", action="store_true", default=True)
     p.add_argument("--val-ratio", type=float, default=0.1)
     p.add_argument("--seed", type=int, default=1)
     p.add_argument("--num-workers", type=int, default=4)
+    # Stage-A: save the final-epoch model instead of the warmup-era best_val model,
+    # because val_acc is a noisy (in-distribution) proxy and the aggressive dynamic
+    # selection pushed the early "best" checkpoint to epoch 5, freezing the submission
+    # model at the warmup stage. The last epoch carries the full LoRA fine-tune.
+    p.add_argument("--keep-final", dest="keep_final", action="store_true", default=True,
+                   help="save the last-epoch state as best.pt (recommended)")
+    p.add_argument("--keep-best-val", dest="keep_final", action="store_false",
+                   help="legacy: save max-val_acc epoch as best.pt")
     return p.parse_args()
 
 
@@ -380,7 +388,7 @@ def main():
                              num_workers=args.num_workers, collate_fn=_collate, pin_memory=True)
 
     selected_mask = candidate_mask.copy()
-    best_val, best_state = -1.0, None
+    best_val, best_state, best_val_epoch = -1.0, None, 0
     log_f = open(os.path.join(args.output_dir, "train_log.jsonl"), "w")
 
     for epoch in range(1, args.epochs + 1):
@@ -414,10 +422,12 @@ def main():
               f"selected={row['selected']}", flush=True)
         if val_acc > best_val:
             best_val = val_acc
+            best_val_epoch = epoch
             best_state = {n: v.detach().cpu() for n, v in model.state_dict().items()
                           if ("lora_" in n) or n.startswith("head.")}
-            torch.save(best_state, os.path.join(args.output_dir, "best.pt"))
-            print(f"  -> new best val_acc={best_val:.4f}", flush=True)
+            if not args.keep_final:
+                torch.save(best_state, os.path.join(args.output_dir, "best.pt"))
+            print(f"  -> new best val_acc={best_val:.4f} (epoch {epoch})", flush=True)
 
         if args.use_dynamic and epoch < args.epochs and \
            epoch >= args.warmup_epochs and (epoch - args.warmup_epochs) % args.update_interval == 0:
@@ -433,12 +443,24 @@ def main():
             print(f"[select] epoch={epoch} selected={int(selected_mask.sum())} "
                   f"loss_sel={int(loss_sel.sum())} proto_pass={int(proto_pass.sum())}", flush=True)
 
+    # Stage-A: the submission model is the LAST epoch (full fine-tune) by default,
+    # because val_acc is a noisy in-distribution proxy and early stopping froze the
+    # previous submission at the warmup stage (epoch 5). When --keep-best-val is given,
+    # fall back to the max-val_acc epoch.
+    if args.keep_final:
+        best_state = {n: v.detach().cpu() for n, v in model.state_dict().items()
+                      if ("lora_" in n) or n.startswith("head.")}
+        saved_epoch = args.epochs
+    else:
+        saved_epoch = best_val_epoch
     torch.save(best_state, os.path.join(args.output_dir, "best.pt"))
     with open(os.path.join(args.output_dir, "meta.json"), "w") as f:
-        json.dump(dict(args=vars(args), best_val_acc=best_val, n_classes=n_classes,
+        json.dump(dict(args=vars(args), best_val_acc=best_val, best_val_epoch=int(best_val_epoch),
+                       submission_epoch=int(saved_epoch), n_classes=n_classes,
                        replaced_modules=replaced, resolution=args.resolution),
                   f, indent=2)
-    print(f"[done] best_val_acc={best_val:.4f} -> {args.output_dir}")
+    print(f"[done] best_val_acc={best_val:.4f} (epoch {best_val_epoch}) "
+          f"-> submission model = epoch {saved_epoch} (keep_final={args.keep_final})")
 
 
 @torch.no_grad()
