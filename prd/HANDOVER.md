@@ -1,6 +1,6 @@
 # NLPrompt Contest 项目 — AI 接手交接文档
 
-> 更新时间：2026-08-08
+> 更新时间：2026-08-09
 > 用途：供后续 AI / 开发者直接接手，含现状、已完成、已知坑、待办与完整命令。
 > 项目根目录：**/root/code/NLPrompt**
 
@@ -8,9 +8,9 @@
 
 ## 0. 一句话现状
 
-- **线上准确率基线 = 48%**（官网测试成绩，比赛方不提供测试标签，提交 `pred_results.zip` 即得 Top-1）。
-- 旧流水线（阶段 1-4，冻结 CLIP 只训线性头 + 自训练）已出包，线上 **48%**。
-- **当前主线（V2）**：已落地 **LoRA 微调 CLIP ViT-B/32 骨干**（复刻 PGDF 的成功方法），训练进行中（PID 2948068），产物 `output/contest_ft_lora/best.pt`。这是提分的关键方向。
+- **线上准确率当前最优 = 63.66%**（V2 阶段 B 全量候选池，`output/contest_ft_lora_b/best.pt`，2026-08-10 官网确认）；旧 V2 基线 55.02%；V1 基线 48%；阶段 A 实验 34%（已废弃，见 §2）。
+- **当前主线（V2）**：LoRA 微调 CLIP ViT-B/32 骨干 + 动态小损失筛选 + 全量候选池，已落地并多次出包验证。
+- **关键认知更新**：全量候选池是阶段 B 从 55%→63.66% 的核心（见 §11）；提交模型用 **warmup 期**（epoch3-5）而非末轮。
 - **重要**：本地 `val_acc` 是**虚假指标**（见 §4），判断是否提分**只能看官网提交分**，千万别被本地 80% 误导。
 
 ---
@@ -39,10 +39,15 @@
 | 版本 | 方法 | 骨干 | 线上准确率 | 状态 |
 |------|------|------|-----------|------|
 | V1（旧） | 冻结 CLIP 提特征 → 线性 cosine 头 + GCE + 自训练扩展 | 冻结 | **48%** | 已出包，基线 |
-| V2（当前） | **LoRA 微调 CLIP 视觉骨干** + 分类头 + 动态小损失筛选 | 微调 | 待提交验证 | 训练进行中 |
+| V2（旧最优） | **LoRA 微调 CLIP 视觉骨干** + 分类头 + 动态小损失筛选（stage-1 受限候选），提交 **epoch5 warmup** 模型 | 微调 | **55.02%** | 已出包，基线 |
+| V2 阶段 B（当前最优） | 同上，但候选池扩到**全量 103,218**（`--candidate full`），动态筛选从全量去噪，提交 epoch5 warmup | 微调 | **63.66%** | ✅ 当前最优提交 |
+| V2 阶段 A（已废弃） | 同上，但**放宽筛选 + 提交末轮 epoch40** 模型 | 微调 | **34%** | 证伪，废弃 |
 
 - **48% → 59% 的差距来源（与 PGDF 对比）**：PGDF 用**同一 CLIP ViT-B/32** 拿 59%，靠的是 (1) LoRA 微调骨干 (2) 迭代动态筛样本 (3) 更大分辨率。本项目 V1 冻结骨干是主因丢分。V2 就是对齐这套方法学。
 - **V2 为什么可信**：比赛需求文档本就要求"鲁棒微调" CLIP ViT-B/32，LoRA 微调完全合规（不改骨干权重，只加适配器）。
+- **阶段 A 教训（2026-08-09 实测）**：把提交模型从 warmup epoch5 换成末轮 epoch40（loss=0.016、val_acc=0.545），线上反而跌到 **34%**。原因：epoch40 在筛选子集（~19300 张，全量 34%）上严重过拟合，丧失对全量分布的泛化；而 warmup 期是全量训练、未过拟合筛选子集，泛化更好。**结论：不要提交末轮模型，提交 early-stop / warmup 期模型**。
+
+**重要环境限制（修正旧文档误述）**：CLIP ViT-B/32 原生**只支持 224 分辨率**，"提高输入分辨率到 336/448" 会因 `positional_embedding` 维度 mismatch 报错，**不可行**（已实测验证，见 §4.7）。提分不能靠分辨率。
 
 ---
 
@@ -54,11 +59,12 @@
 | 旧 V1 提交包 | `output/contest_train_final/pred_results.{csv,zip}` | 阶段3自训练模型，线上 48% |
 | **V2 训练脚本** | `train_clip_lora.py` | LoRA 微调主干（见 §5） |
 | **V2 推理脚本** | `test_clip_lora.py` | 用 best.pt + 5-view TTA 出提交包 |
-| **V2 训练产物** | `output/contest_ft_lora/` | `best.pt`（LoRA+head 参数，约 4.6MB）、`meta.json`、`train_log.jsonl` |
-| **V2 早期提交包** | `output/contest_ft_lora/pred_results.{csv,zip}` | 基于 epoch4 best.pt 生成，24967 行，格式已校验合规 |
+| **V2 阶段 B 产物（当前最优）** | `output/contest_ft_lora_b/` | `best.pt`（epoch5 warmup，线上 **63.66%**）、`meta.json`、`train_log.jsonl`；`pred_results.{csv,zip}` 线上 **63.66%**，**当前最优提交** |
+| **V2 旧最优产物** | `output/contest_ft_lora/` | `best.pt`（epoch5 warmup，LoRA+head，约 4.6MB）、`meta.json`、`train_log.jsonl`；`pred_results.{csv,zip}` 线上 **55.02%** |
+| **V2 阶段 A 产物（废弃）** | `output/contest_ft_lora_a/` | `best.pt`（epoch40 末轮）、`meta.json`、`train_log.jsonl`、`pred_results.{csv,zip}` 线上 34%，**勿提交** |
 | 旧 V1 脚本（保留参考） | `class_prototype.py`、`train_prototype.py`、`self_train_prototype.py`、`test_prototype.py` | 冻结骨干方案 |
 
-**注意**：`all_class_predictions.json` 是 API 识别结果、类别名重叠错误多，**不可作为监督信号**，纯视觉方案已弃用它。
+**注意**：`all_class_predictions.json` 是 API 识别结果、类别名重叠错误多，**不可作为监督信号**；但 `train_clip_lora.py` 第 289 行仍调用 `load_contest_classnames(args.json)` 读取它（仅用于类别数对齐/占位），**删除会导致训练崩溃**，必须保留。
 
 ---
 
@@ -85,7 +91,13 @@
 ### 4.2 本地 val_acc 是虚假指标（关键！）
 - 训练里的 `val_acc` 是从阶段 1 `clean_mask`（被判定"干净"的样本）切出的，且 train/val 同源于此净化池，标签是文件夹名（非人工核实）。模型在"精选干净子集"上自然虚高（曾达 0.82）。
 - 动态筛选一收紧（候选从 56,565 砍到 ~12,313，约 22%），val_acc 立刻跌到 ~0.66。这进一步证明它测的是"对最容易样本的拟合"，**不代表线上混合噪声测试集的泛化**。
-- **唯一可信指标 = 官网提交分（48% 基线）**。本地 80% 切勿外推。判断是否提分只能靠提交。
+- **唯一可信指标 = 官网提交分**。本地 80% 切勿外推。判断是否提分只能靠提交。
+- **warmup 模型反而泛化更好（2026-08-09 实测）**：warmup 期（epoch3-5，全量训练、未过拟合筛选子集）val_acc 虚高达 0.78，但提交后线上 55%；末轮（epoch40，loss=0.016、过拟合筛选子集）提交后线上仅 34%。**选提交模型应 early-stop / 取 warmup 期，而非末轮或 max-val_acc**。本项目的 `best.pt` 选择逻辑（`--keep-final` 保存末轮）已被证伪，应改用 `--keep-best-val` 或显式取 warmup 检查点。
+
+### 4.7 CLIP ViT-B/32 仅支持 224 分辨率（实测误述修正）
+- 旧文档 §6 曾写"提高输入分辨率到 336/448" 可提分 —— **错误，不可行**。ViT-B/32 的 `positional_embedding` 是按 224 输入（50 个位置：7×7 patch + 1 cls）训练的。
+- 实测：用 `--resolution 336` 前向报 `positional_embedding: expected 101 but got 50`（336 → 16×16=256 token，与预训练 50 位置不符），直接报错。
+- **结论**：分辨率固定 224，提分不能靠分辨率，只能靠筛选策略 / 候选池 / 早停 / 自训练迭代。
 
 ### 4.3 CLIP LoRA 注入：必须子类化 nn.Linear
 - CLIP 的 `ResidualAttentionBlock` 用 `nn.MultiheadAttention`，其 `out_proj` 在注意力内部直接访问 `.weight`。若把 `out_proj` 替换成外部包裹的 LoRA 模块（无 `.weight` 属性），前向会 `AttributeError: ...has no attribute 'weight'`。
@@ -119,10 +131,12 @@ setsid nohup ./.venv/bin/python -u train_clip_lora.py \
     --batch-size 64 --resolution 224 \
     --lora-lr 1e-4 --head-lr 1e-3 \
     --retention-ratio 0.8 --proto-keep-ratio 0.5 \
+    --keep-best-val \
     > /tmp/lora_train.log 2>&1 < /dev/null &
 ```
 - 关键超参：LoRA rank=8, alpha=16, dropout=0.05，目标层 `out_proj,c_fc,c_proj`；分类头 `Linear(512,500)` + CE；动态筛选 = 类内 loss 最小 top-0.8 ∩ 原型相似度 top-0.5，迭代重训。
-- 当前状态（写文档时）：epoch 20/40，val_acc≈0.66，selected≈12,313，best.pt 已更新。
+- **提交模型选择**：用 `--keep-best-val`（保存 max-val_acc epoch，即 warmup 期，线上 55% 来源）；**不要用 `--keep-final`**（保存末轮，阶段 A 实测线上仅 34%）。
+- 当前最优产物：`output/contest_ft_lora/`（epoch5 warmup best.pt，线上 55.02%）。
 - 日志：`tail -f /tmp/lora_train.log`
 
 ### 5.2 推理（出提交包）
@@ -139,17 +153,49 @@ setsid nohup ./.venv/bin/python -u test_clip_lora.py \
 
 ---
 
-## 6. 后续接手待办（按优先级）
+## 6. 后续接手待办（按优先级，2026-08-10 更新）
 
-1. **等 V2 训练跑完**（约 40 epoch，已在后台）。
-2. **用最终 best.pt 重出提交包**：训练结束后重跑 §5.2（覆盖早期 epoch4 包）。
-3. **提交 `output/contest_ft_lora/pred_results.zip` 到官网**，拿真实 Top-1，与 48% 基线对比——这是判断 V2 是否有效的唯一依据。
-4. 若线上 < 48%：说明动态筛选砍太狠（12,313 偏激进）或 LoRA 过拟合噪声，调 `retention-ratio`（↑0.9）/ `proto-keep-ratio`（↑0.6）/ 加 warmup epoch。
-5. 若线上 > 48% 但仍不够（目标 60-75% 弱骨干上限）：
-   - 微调 `in_proj_weight`（拆 QKV LoRA，需改 CLIP attention 实现）；
-   - 提高输入分辨率（需对 `positional_embedding` 做插值，当前 224 是 ViT-B/32 原生尺寸，336/448 会因 pos_embed 尺寸不符报错）；
-   - 多 checkpoint soft-vote（合法，单一模型）。
-6. 不推荐再回头优化 V1 冻结方案，主线是 V2 微调。
+> 现状：**阶段 B 全量候选池大幅突破 → 63.66%（+8.64pp）**，远超预期（原估 57–58%）。已确认 warmup 提交是全量候选池 + 动态筛选的正确使用方式。阶段 C 脚本已写好，种子模型就绪，即可启动。
+
+1. **当前最优提交 = `output/contest_ft_lora_b/pred_results.zip`（63.66%）**，作为新基线。旧 55.02% 产物的 `contest_ft_lora/` 保留作记录。
+2. ~~阶段 B — 扩大候选池~~ **✅ 已完成，线上 63.66%**：全量 103,218 候选池 + 动态小损失+proto 双信号筛选，epoch5 warmup 出包。核心经验见 §11。
+3. **阶段 C — 迭代自训练（主力，已可启动）**：`self_train_v2.py` 已写好并通过语法检查。种子模型 = `output/contest_ft_lora_b/best.pt`（63.66%）。预计 3 rounds × ~2.5h ≈ **~7.5 小时**。启动命令见 §6.2。预期再提 1–3pp → 65–67%。
+4. **TTA 推理增强**：边际 +0.3~0.5%，阶段 C 出分后考虑。
+5. **融合兜底**：V2 预测与旧 V1(48%) 做 per-class 置信度加权融合（阶段 C 后考虑）。
+6. **已排除的方向**（详见 §9.5）：提分辨率、提交末轮、zero-shot 清洗（无类别名）、集成、换骨干、回头优化 V1。
+
+### 6.1 阶段 B 最终结果（2026-08-10 ✅ 完成）
+- 提交品：`output/contest_ft_lora_b/pred_results.zip`，**线上 63.66%**（vs 旧基线 55.02%，+8.64pp）。
+- 训练配置：全量 103,218 候选、40 epoch、warmup 5、best.pt=epoch5（val_acc 0.772）。
+- 训练耗时：启动 19:38 → 完成 ~01:15，约 5.6 小时（比预估 7.5h 快）。
+- 关键：已超 PGDF 同骨干 59%，完全消除"静态 K-means 信息瓶颈"（详见 §11）。
+
+### 6.2 阶段 C 自训练（self_train_v2.py，可启动）
+- 脚本：`/root/code/NLPrompt/self_train_v2.py` ✔ 已创建，语法检查通过。
+- 种子：`output/contest_ft_lora_b/best.pt`（63.66% 模型）。
+- 核心：predict(M) → consistency_clean(folder==pred 高置信=干净；不一致高置信=错图降权) → 净化集重训 → 迭代 3 round。
+- 预估：每 round ~2.5h（预测 ~2min + 20 epoch × ~7min），3 rounds ≈ **7.5 小时**。
+- 启动命令：
+  ```bash
+  cd /root/code/NLPrompt
+  setsid nohup ./.venv/bin/python -u self_train_v2.py \
+      --seed-ckpt output/contest_ft_lora_b/best.pt \
+      --data-root /root/datasets/contest \
+      --json all_class_predictions.json \
+      --output-dir output/contest_ft_lora_c \
+      --rounds 3 --epochs 20 --resolution 224 --batch-size 64 \
+      --consistent-conf-threshold 0.8 --mismatch-conf-threshold 0.9 \
+      > /tmp/lora_c_train.log 2>&1 < /dev/null &
+  ```
+
+---
+
+## 6.1 阶段 A 实验归档（2026-08-09，已废弃）
+
+- 目标：放宽筛选 + 提交末轮模型，验证能否超 55%。
+- 改动：`--retention-ratio 0.9 --proto-keep-ratio 0.7 --warmup-epochs 3 --keep-final`（分辨率原想 336，实测不可用改回 224）。
+- 结果：候选保留 34%（旧 22%），末轮 loss=0.016 / val_acc=0.545，但**线上仅 34%**。
+- 结论：末轮过拟合筛选子集，warmup 全量模型泛化更好。产物 `output/contest_ft_lora_a/` 保留作记录，不再提交。
 
 ---
 
@@ -162,8 +208,101 @@ setsid nohup ./.venv/bin/python -u test_clip_lora.py \
 
 ---
 
+## 9. 关键认知（接手必读，避免重复讨论）
+
+> 以下为 2026-08-09 与用户确认的核心结论，后续接手直接采用，勿再让用户重复陈述。
+
+### 9.1 官方不提供类别名 —— 这是铁约束，影响方案选型
+- **比赛官方只给 folder 编号（0000–0499）作为标签，不提供任何类别名/物种名。**
+- 因此 **CLIP zero-shot 清洗不可行**（zero-shot 需要 "a photo of a {class_name}" 文本侧，无名字则无法构造 prompt）。
+- 所有去噪信号**只能来自图像特征空间的自洽性**（loss 小、原型近、模型伪标签一致），不能依赖文本侧。
+- `clip_words.csv` / `all_class_predictions.json` 均**不是可信类别名**（API 识别、重叠错），仅用于类别数对齐/占位。
+
+### 9.2 当前方案的天花板评估（重要：不是方案错，是约束封顶）
+- **硬约束封死了最容易提分的杠杆**：骨干锁 ViT-B/32（224，不可提分辨率，§4.7）、单模型禁集成、不可换权重、无外部数据。
+- **2026-08-10 实测突破**：阶段 B（全量候选池）从 55.02% → **63.66%**（+8.64pp），已**超过 PGDF 同骨干的 59%**，天花板判断被修正。核心原因见 §11 经验总结。
+- 主损耗来源 = **标签噪声**：训练图是网络爬取、folder 即标签，内含大量异类/错标签。纯 loss 筛选只保"易拟合"不知"标签对"。
+- **结论**：V2 路线本身正确（对齐 PGDF 方法论），无需推倒重来；阶段 B 证明全量候选池 + 动态筛选是正确去噪方向。阶段 C 用伪标签一致性进一步净化，有望再冲 65%+。
+
+### 9.3 无类别名下冲击高准确率的最优路线（已与用户确认）
+按收益排序，均合规（单模型、不换权重、无外部数据、无类别名）：
+1. **课程式迭代自训练（伪标签一致性净化）—— 主力，预期 63.66%→65–67%**（`self_train_v2.py` 已写）
+   - 用当前模型 M 对全量 103k 图预测 → 得伪标签 p_i 与置信 c_i。
+   - 一致性净化：folder 标签 y_i 与 p_i 一致且 c_i 高 → 高置信干净样本（强监督）；y_i≠p_i 且 c_i 高 → 疑似错图/错标签（降权或剔除）；低置信 → 暂存。
+   - 在净化集上重训 M' → 预测更准 → 净化更净 → 迭代。
+2. **阶段 B 全量候选池（✅ 已完成，55.02%→63.66%，+8.64pp）** — 详见 §11。
+3. **TTA 推理增强（边际 +0.3~0.5%）**
+4. **置信度融合兜底（保险）**：V2 预测与旧 V1(48%) per-class 置信度加权融合。
+
+### 9.4 已修正的代码默认行为（2026-08-09）
+- `train_clip_lora.py`：
+  - `--keep-final` 默认由 `True` 改为 **`False`**（即默认 `--keep-best-val`）。理由：阶段 A 证伪末轮模型（线上 34%），warmup 期（max-val_acc）才是 55% 来源。末轮逻辑保留但标 deprecated，**勿用**。
+  - 新增 `--candidate {full,clean}`，**默认 `full`**（阶段 B）。`clean` 为旧受限池，仅作对照。
+
+### 9.5 已排除 / 不可行方向（勿再尝试）
+- 提分辨率到 336/448（pos_embed mismatch，§4.7）。
+- 提交末轮 epoch40 模型（过拟合筛选子集，线上 34%，§2/§4.2）。
+- CLIP zero-shot 伪标签清洗（**无类别名，§9.1**）。
+- 多模型集成/投票（规则禁止）。
+- 换 ViT-L/14 或引入外部数据集（约束禁止）。
+- 回头优化 V1 冻结方案（主线是 V2 微调）。
+
+## 10. 运行时间预估与定时验收（铁律）
+
+> 用户会为每次长任务**自行定时**，并在到点后**验收结果**。因此每次启动任何耗时任务前，**必须向用户给出明确的预计总时长与可验收的产出物**，写进本文件对应章节，用户据此设闹钟/定时。
+
+### 10.1 预估方法
+- 单 epoch 耗时 = （已完成 epoch 数）/（实际训练分钟数），按当前硬件（H200 MIG 2g.35gb）实时测量，不要凭记忆。
+- 总时长 ≈ `epochs × 单epoch` + `筛选次数 × 单次compute_losses全量前向(~8min)` + `CLIP加载(~3min)` + `出包推理(~15min)`。
+- 动态筛选触发点：epoch≥warmup_epochs 且 (epoch-warmup)%update_interval==0 且 epoch<epochs。
+
+### 10.2 阶段 B（✅ 已完成，实测时间 2026-08-10）
+- **启动**：19:38 → **完成 40 epoch**：~01:15 → 出包：~01:35，**总 ≈ 5.9 小时**。
+- **实际单 epoch ≈ 7.2 min**（比初估 12 min → 修正 8.8 min 都快，MIG 实际更高效）。
+- 关键节点：epoch5 warmup best.pt 在 20:14 产出（启动后 36 min）；40 epoch 在 01:15 完成。
+- 提交品：`output/contest_ft_lora_b/pred_results.zip`，线上 **63.66%**。
+
+### 10.3 阶段 C（self_train_v2.py，待启动）
+- 配置：`--rounds 3 --epochs 20 --batch-size 64`，种子 = `output/contest_ft_lora_b/best.pt`。
+- 预估：每 round ≈ 预测 2 min + 20 epoch × 7 min ≈ **2.4 h**，3 rounds ≈ **7.2 小时**。
+- 预计启动约 08-10 02:30 → 完成约 08-10 09:45。
+- 验收产物：`output/contest_ft_lora_c/best.pt`（最终 round 3 的 best.pt），随后出包提交。
+
+### 10.4 后续任务预估模板（接手时填满）
+| 任务 | 预估时长 | 验收产物 |
+|------|---------|---------|
+| 阶段 C 自训练 3 round | ~7.2 h | `output/contest_ft_lora_c/best.pt` |
+| 阶段 C 出包 | ~15 min | `output/contest_ft_lora_c/pred_results.zip` |
+| TTA 增强推理 | ~15–20 min | 新 `pred_results.zip` |
+
+## 11. 经验总结（阶段性突破记录）
+
+### 11.1 阶段 B：全量候选池 → 55.02% → 63.66%（+8.64pp，已验证）
+
+**做了什么**：`train_clip_lora.py` 新增 `--candidate full`，候选池从 stage-1 clean_mask 的 54.8%（56,565 张）扩到全量 103,218 张。动态筛选（小损失 + 原型相似度）每 5 个 epoch 从全量重新挑出最干净样本。
+
+**为什么生效**（核心认知）：
+
+1. **stage-1 K-means 去噪是信息瓶颈**：基于冻结 CLIP 特征做静态 K-means 去噪，保留 54.8%。但这 54.8% 里仍混噪声，同时被砍掉的 45.2% 里大量好样本被误杀——因为冻结特征与 LoRA 微调后的分布有偏移。
+
+2. **动态筛选比静态筛选更适配微调分布**：全量候选让动态筛选每 5 个 epoch 重新评估全量样本的 loss+proto，随着模型变好，每次都能从全量挑出当前最干净的样本。"在线去噪" vs "离线去噪"的本质优势。
+
+3. **双信号联合（loss+proto）比单信号稳健**：PGDF 的纯 loss 或纯 proto 更容易被噪声误导，而 loss+proto 交集让两个信号互相验证。
+
+4. **warmup 提交是必要条件**：epoch5 best.pt（val_acc 0.772）出 63.66%，若用末轮会因过拟合筛选子集而暴跌（阶段 A 仅 34%）。`--keep-best-val` 默认化是关键保险。
+
+5. **不要迷信本地 val_acc**：最高 0.772 与线上 63.66% 无直接映射，唯一可信 = 官网提交分。
+
+**教训**：
+- **静态 K-means 去噪对微调是信息瓶颈**——砍掉的 45.2% 含大量好样本。
+- **动态筛选必须搭配全量候选池**——受限候选下筛选只能"从坏里挑不那么坏的"。
+
+### 11.2 后续方向判断（63.66% 基线）
+- 阶段 C（伪标签一致性净化迭代自训练）：`self_train_v2.py` 已写好，种子 = 63.66% best.pt。理论上能抓出"folder 内混入异类"的噪声（loss 筛选做不到），预期 **63.66%→65–67%**。这是约束内最后一个还能大幅提分的杠杆。
+- TTA 强化 / 融合兜底：边际收益，阶段 C 后考虑。
+
 ## 8. 相关文档
 - `prd/requirements.md` — 比赛需求与约束（权威）
 - `format_request.md` — 官方提交格式（无表头 + 4 位零填充）
-- `prd/plan_v2.md` — V2 提分路线规划
-- `prd/progress.md`、`prd/TODO_remaining.md` — 旧进度/待办（部分过期，以本文件为准）
+- 所有进展/交接/实验记录**统一维护在本文件**，不再新建额外 md（避免文档碎片化）。如曾建的 `prd/DELIVERY_v2.md` 已并入本文件 §2/§4.2/§4.7/§6.1，可删除。
+- 旧文档 `prd/plan_v2.md`、`prd/progress.md`、`prd/TODO_remaining.md` 部分过期，以本文件为准。

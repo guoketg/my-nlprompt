@@ -279,10 +279,19 @@ def parse_args():
     # because val_acc is a noisy (in-distribution) proxy and the aggressive dynamic
     # selection pushed the early "best" checkpoint to epoch 5, freezing the submission
     # model at the warmup stage. The last epoch carries the full LoRA fine-tune.
-    p.add_argument("--keep-final", dest="keep_final", action="store_true", default=True,
-                   help="save the last-epoch state as best.pt (recommended)")
+    p.add_argument("--keep-final", dest="keep_final", action="store_true", default=False,
+                   help="Stage-A (DEPRECATED): save the last-epoch state. Overfits the "
+                        "small-loss selection subset -> 34% online. Do not use.")
     p.add_argument("--keep-best-val", dest="keep_final", action="store_false",
-                   help="legacy: save max-val_acc epoch as best.pt")
+                   help="RECOMMENDED: save the max-val_acc (warmup-era) epoch as best.pt. "
+                        "Generalizes far better online (55% source).")
+    # Stage-B: candidate pool for dynamic selection.
+    #  full  -> use ALL 103,218 training images as candidates; let the dynamic
+    #           small-loss + prototype selection denoise from the full pool
+    #           (avoids the stage-1 clean_mask double-limiting the training set).
+    #  clean -> legacy: restrict candidates to stage-1 clean subset (54.8%).
+    p.add_argument("--candidate", default="full", choices=["full", "clean"],
+                   help="candidate pool for dynamic selection (Stage-B: 'full' is recommended)")
     return p.parse_args()
 
 
@@ -331,8 +340,16 @@ def main():
     proto_scores_full = np.full(n_total, np.nan, dtype=np.float32)
     proto_scores_full[kept_idx] = (feats_k * class_means[labels_k]).sum(axis=1)
 
-    # candidate set = stage-1 clean (full positions)
-    candidate_mask = clean_full.copy()
+    # candidate set: Stage-B uses the FULL training pool so the dynamic
+    # small-loss + prototype selection can denoise from all 103,218 images
+    # (the stage-1 clean_mask is only used as a soft prototype reference, not
+    # a hard candidate gate). 'clean' keeps the legacy restricted pool.
+    if args.candidate == "full":
+        candidate_mask = np.ones(n_total, dtype=bool)
+        print(f"[data] Stage-B candidate pool = FULL ({int(candidate_mask.sum())})")
+    else:
+        candidate_mask = clean_full.copy()
+        print(f"[data] candidate pool = stage-1 clean ({int(candidate_mask.sum())})")
     candidate_idx = np.where(candidate_mask)[0]
     print(f"[data] candidates={len(candidate_idx)}")
 
