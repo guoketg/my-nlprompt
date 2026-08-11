@@ -176,10 +176,10 @@ def parse_args():
                    help="min confidence for folder==pred to be 'clean'")
     p.add_argument("--mismatch-conf-threshold", type=float, default=0.9,
                    help="min confidence for folder!=pred to be 'likely noise'")
-    p.add_argument("--use-mismatch-downweight", dest="use_mismatch_downweight",
-                   action="store_true", default=True,
-                   help="keep mismatch samples but down-weight their loss "
-                   "(instead of fully dropping them)")
+    p.add_argument("--drop-mismatch", dest="drop_mismatch",
+                   action="store_true", default=False,
+                   help="fully DROP high-conf mismatch samples (likely mislabeled) "
+                   "instead of down-weighting them. More aggressive denoising.")
     p.add_argument("--use-uncertain", dest="use_uncertain", action="store_true",
                    default=False,
                    help="include uncertain (low-conf) samples with reduced weight")
@@ -288,27 +288,23 @@ def main():
               f"uncertain={int(uncertain_mask.sum())}")
 
         # Build training set for this round
-        if args.use_mismatch_downweight:
-            # keep mismatches + uncertain with very low weight
-            train_mask = clean_mask | mismatch_mask
-            if args.use_uncertain:
-                train_mask |= uncertain_mask
-            # sample weights: clean=1.0, mismatch=0.1, uncertain=0.05
-            sw = np.ones(n_total, dtype=np.float32)
-            sw[mismatch_mask] = 0.1
-            sw[uncertain_mask] = 0.05
-        else:
+        if args.drop_mismatch:
             train_mask = clean_mask.copy()
             if args.use_uncertain:
                 train_mask |= uncertain_mask
-                sw = np.ones(n_total, dtype=np.float32)
-                sw[uncertain_mask] = 0.1
-            else:
-                sw = np.ones(n_total, dtype=np.float32)
+            sw = np.ones(n_total, dtype=np.float32)
+            sw[uncertain_mask] = 0.05
+        else:
+            train_mask = clean_mask | mismatch_mask
+            if args.use_uncertain:
+                train_mask |= uncertain_mask
+            sw = np.ones(n_total, dtype=np.float32)
+            sw[mismatch_mask] = 0.1
+            sw[uncertain_mask] = 0.05
         train_idx = np.where(train_mask)[0]
         sample_weights = torch.tensor(sw[train_idx], dtype=torch.float32)
         print(f"[train] training on {len(train_idx)} samples "
-              f"({'w/ mismatch downweight' if args.use_mismatch_downweight else 'clean only'})")
+              f"({'DROP mismatch' if args.drop_mismatch else 'w/ mismatch downweight'})")
 
         # ---- Step 3: train on cleaned set --------------------------------
         if len(train_idx) < args.batch_size:
