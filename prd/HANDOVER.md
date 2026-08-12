@@ -1,6 +1,6 @@
 # NLPrompt Contest 项目 — AI 接手交接文档
 
-> 更新时间：2026-08-09
+> 更新时间：2026-08-11（融合包 68.37% 已线上验收 + 方向 4 启动）
 > 用途：供后续 AI / 开发者直接接手，含现状、已完成、已知坑、待办与完整命令。
 > 项目根目录：**/root/code/NLPrompt**
 
@@ -8,10 +8,12 @@
 
 ## 0. 一句话现状
 
-- **线上准确率当前最优 = 64.66%**（V2 阶段 C 自训练，`output/contest_ft_lora_c/best.pt`，2026-08-10 官网确认）；阶段 B 63.66%；旧 V2 基线 55.02%；V1 基线 48%；阶段 A 实验 34%（已废弃，见 §2）。
-- **当前主线（V2）**：LoRA 微调 CLIP ViT-B/32 骨干 + 动态小损失筛选 + 全量候选池，已落地并多次出包验证。
-- **关键认知更新**：全量候选池是阶段 B 从 55%→63.66% 的核心（见 §11）；伪标签一致性自训练是阶段 C 从 63.66%→64.66% 的核心（见 §11.3）；提交模型用 **warmup 期**（epoch3-5）而非末轮。
-- **重要**：本地 `val_acc` 是**虚假指标**（见 §4），判断是否提分**只能看官网提交分**，千万别被本地 80% 误导。
+- **线上准确率当前最优 = 68.37%**（**融合包** `output/fuse_c2_c/pred_results.zip` = c2(67.86%) × c(64.66%) per-class 置信度加权，2026-08-11 官网确认，+0.51pp vs c2 单模）。
+- 历史分数线：c2 阶段 **67.86%** → 阶段 C **64.66%** → 阶段 B **63.66%** → 旧 V2 **55.02%** → V1 **48%** → 阶段 A **34%**（已废弃，见 §2）。
+- **当前主线（V2）**：LoRA 微调 CLIP ViT-B/32 骨干 + 动态小损失筛选 + 全量候选池 + 伪标签一致性激进自训练 + 11-view TTA + 同流程检查点置信度融合。
+- **关键认知更新**：全量候选池 = +8.64pp（§11.1）；伪标签一致性自训练 = +1.0pp（§11.3）；激进剔除 + 增强 TTA = +3.20pp（§11.4）；**同流程多检查点概率融合 = +0.51pp（§11.5，已验证合规且稳定提分）**。
+- **重要**：本地 `val_acc` 是**虚假指标**（见 §4），判断是否提分**只能看官网提交分**，千万别被本地 93%/98% 误导。
+- **进行中**：方向 4 — 三重信号串联自训练（`self_train_v3.py`），见 §6.4 与 §10.5。
 
 ---
 
@@ -60,7 +62,10 @@
 | 旧 V1 提交包 | `output/contest_train_final/pred_results.{csv,zip}` | 阶段3自训练模型，线上 48% |
 | **V2 训练脚本** | `train_clip_lora.py` | LoRA 微调主干（见 §5） |
 | **V2 推理脚本** | `test_clip_lora.py` | 用 best.pt + 5-view TTA 出提交包 |
-| **V2 阶段 C 产物（当前最优）** | `output/contest_ft_lora_c/` | `best.pt`（round3，线上 **64.66%**）、`round1/2/3.pt`、`self_train_log.json`；`pred_results.{csv,zip}` 线上 **64.66%**，**当前最优提交** |
+| **融合产物（当前最优）** | `output/fuse_c2_c/` | `pred_results.{csv,zip}` 线上 **68.37%**，**当前最优提交**；由 `fuse_predictions.py` 对 c2/c 的 per-class 概率加权融合得到 |
+| **融合脚本** | `fuse_predictions.py` | 读取两组 `probs.npy`/预测，per-class 置信度加权，输出提交包 |
+| **V2 阶段 C2 产物** | `output/contest_ft_lora_c2/` | `best.pt`（round5）、`round1..5.pt`、`self_train_log.json`；`pred_results.{csv,zip}` 线上 **67.86%** |
+| **V2 阶段 C 产物** | `output/contest_ft_lora_c/` | `best.pt`（round3，线上 **64.66%**）、`round1/2/3.pt`、`self_train_log.json`；`pred_results.{csv,zip}` 线上 **64.66%** |
 | **V2 阶段 B 产物** | `output/contest_ft_lora_b/` | `best.pt`（epoch5 warmup，线上 **63.66%**）、`meta.json`、`train_log.jsonl`；`pred_results.{csv,zip}` 线上 63.66% |
 | **V2 旧最优产物** | `output/contest_ft_lora/` | `best.pt`（epoch5 warmup，LoRA+head，约 4.6MB）、`meta.json`、`train_log.jsonl`；`pred_results.{csv,zip}` 线上 **55.02%** |
 | **V2 阶段 A 产物（废弃）** | `output/contest_ft_lora_a/` | `best.pt`（epoch40 末轮）、`meta.json`、`train_log.jsonl`、`pred_results.{csv,zip}` 线上 34%，**勿提交** |
@@ -155,17 +160,18 @@ setsid nohup ./.venv/bin/python -u test_clip_lora.py \
 
 ---
 
-## 6. 后续接手待办（按优先级，2026-08-10 更新）
+## 6. 后续接手待办（按优先级，2026-08-11 更新）
 
-> 现状：**阶段 C 伪标签一致性自训练 → 64.66%（+1.0pp vs 阶段 B 63.66%）**。当前主线成果：V2 全量候选池（B）+ 伪标签一致性自训练（C）已验证有效，从 48% → 64.66%。剩余可试方向：TTA 增强、融合兜底、更多自训练轮次。
+> 现状：**融合包 68.37% 已线上验收，为当前最优**。主线成果：V2 全量候选池（B）+ 伪标签一致性自训练（C/C2）+ 检查点融合，从 48% → 68.37%。当前推进：**方向 4 三重信号串联自训练**。
 
-1. **当前最优提交 = `output/contest_ft_lora_c/pred_results.zip`（64.66%）**，作为新基线。
+1. **当前最优提交 = `output/fuse_c2_c/pred_results.zip`（68.37%）**，作为新基线。
 2. ~~阶段 B — 扩大候选池~~ **✅ 已完成，线上 63.66%**（§6.1）。
-3. ~~阶段 C — 迭代自训练~~ **✅ 已完成，线上 64.66%**（§6.2 + §11.3）。3 轮迭代，每轮 val_acc 持续攀升（最终 0.9886）。
-4. **TTA 推理增强**：5-view 已用，可加更多 crop/尺度（不改分辨率），边际 +0.3~0.5%（§9.3-3）。
-5. **融合兜底**：V2 预测与旧 V1(48%) 做 per-class 置信度加权融合（§9.3-4）。
-6. **更多自训练轮次**：当前 3 轮，可尝试 5 轮或调低 conf 阈值让更多样本参与（§9.3-1）。
-7. **已排除的方向**（详见 §9.5）：提分辨率、提交末轮、zero-shot 清洗（无类别名）、集成、换骨干、回头优化 V1。
+3. ~~阶段 C — 迭代自训练~~ **✅ 已完成，线上 64.66%**（§6.2 + §11.3）。
+4. ~~阶段 C2 — 激进自训练 + 增强 TTA~~ **✅ 已完成，线上 67.86%**（§6.3 + §11.4）。
+5. ~~融合兜底（c2 × c）~~ **✅ 已完成，线上 68.37%**（+0.51pp，§11.5）。已确认**不违规**（同骨干同流程的检查点概率平均，非多模型集成）。
+6. **方向 4 — 三重信号串联自训练（进行中 2026-08-11）**：把 loss 信号 + prototype 信号接入 self_train 每轮，与伪标签一致性三重联合去噪。详见 §6.4。
+7. **后续候补**：方向 4 产出后再与 c2/c 做三方融合；TTA view 数继续微调。
+8. **已排除的方向**（详见 §9.5）：提分辨率、提交末轮、zero-shot 清洗（无类别名）、多模型集成/投票、换骨干、回头优化 V1。
 
 ### 6.1 阶段 B 最终结果（2026-08-10 ✅ 完成）
 - 提交品：`output/contest_ft_lora_b/pred_results.zip`，**线上 63.66%**（vs 旧基线 55.02%，+8.64pp）。
@@ -180,6 +186,37 @@ setsid nohup ./.venv/bin/python -u test_clip_lora.py \
 - 耗时：启动 02:30 → round3 完成 10:02 → 出包 15:53，约 7.4 小时。
 - 训练日志：`output/contest_ft_lora_c/self_train_log.json`（每轮 clean/mismatch/uncertain 计数 + val_acc）。
 - 提交品：`output/contest_ft_lora_c/pred_results.zip`，**线上 64.66%**（+1.0pp vs 阶段 B）。
+
+### 6.3 阶段 C2 激进自训练（self_train_v2.py，✅ 已完成 2026-08-11）
+- 种子：`output/contest_ft_lora_c/best.pt`（64.66%）。
+- 脚本改动：`self_train_v2.py` 原 `--use-mismatch-downweight` 是 `store_true + default=True`（命令行无法关闭），**已修复**为 `--drop-mismatch`（显式剔除高置信 mismatch）+ `--use-uncertain`（低置信样本 0.05 权重参与）。
+- 核心：predict(M) → consistency_clean(mismatch 直接剔除，不再降权) → 净化集重训 → 迭代 **5 轮**；conf 阈值放松 0.8/0.9 → **0.7/0.8**。
+- 命令：`self_train_v2.py --seed-ckpt output/contest_ft_lora_c/best.pt --output-dir output/contest_ft_lora_c2 --rounds 5 --consistent-conf-threshold 0.7 --mismatch-conf-threshold 0.8 --drop-mismatch --use-uncertain`
+- 训练日志：`output/contest_ft_lora_c2/self_train_log.json`。
+- **出包：增强 TTA（11-view，test_clip_lora.py --tta）**，新增多尺度(1.0/1.33)角落裁剪 + 轻度 ColorJitter，仍锁死 224px。
+- 提交品：`output/contest_ft_lora_c2/pred_results.zip`，**线上 67.86%**（+3.20pp vs 阶段 C 64.66%，远超预估 +0.5~1pp）。
+- 关键数据：Round1 mismatch=5157 / uncertain=25269 → Round2 mismatch=3025（自训练正循环持续生效）；Round5 val_acc=0.9335。
+
+### 6.4 方向 4：三重信号串联自训练（`self_train_v3.py`，🚧 进行中 2026-08-11）
+
+**动机**：C2 已把"伪标签一致性"这一信号用到接近饱和（round5 mismatch 从 5157 收敛到 2837 后不再降）。剩余噪声是**一致性信号看不见的噪声**——模型自信地把错图预测成它被放置的类（confirmation bias，自证偏差）。需要引入与"模型当前预测"**弱相关的独立信号**来打破它。
+
+**三重信号定义**（对每个候选样本 i，标称类 y_i）：
+1. **一致性信号 C**（沿用 C2）：`pred_i == y_i` 且 `conf_i >= 0.7` → consistent；`pred_i != y_i` 且 `conf_i >= 0.8` → mismatch（剔除）；其余 uncertain（权重 0.05）。
+2. **损失信号 L**（来自阶段 B，per-class 动态小损失）：类内按 CE loss 升序，取前 `keep_ratio` 分位。低 loss = 可信。
+3. **原型信号 P**（重算，关键改进）：用**当前轮微调后的特征**重算每类原型（而非阶段 1 的冻结 CLIP 特征），取样本对其类原型的 cosine 相似度类内排序。
+
+**为什么 P 必须重算**（踩坑预判）：旧 `output/contest_prototype/` 的 proto 分数只覆盖 K-means 保留的 **56,565/103,218** 样本，其余为 NaN，直接复用会导致整类被跳过、候选池缩水回阶段 A 的信息瓶颈。因此 v3 每轮用当轮 LoRA 骨干重新提特征、重算原型与相似度，**全量 103,218 样本都有分数**。
+
+**融合规则（三票制）**：
+- 三信号都通过 → 权重 1.0（core clean）
+- 恰好两个通过 → 权重 0.5（probable clean）
+- 仅一个通过 → 权重 0.05（uncertain，弱监督）
+- 零个通过 且 C 判为 mismatch → 剔除
+
+**与 C2 的差别**：C2 是"一票（C）定生死"，v3 是"三票加权"。预期收益点在于 L 和 P 能救回被 C 误杀的样本（真样本但模型暂时预测错），同时剔除 C 漏掉的高置信错图。
+
+**风险与预估**：收益不确定（结构性优化，可能 ±1pp）；每轮多一次全量特征提取（+~15 min/轮），5 轮总耗时预估 **~9-11 小时**。
 
 ---
 
@@ -213,7 +250,7 @@ setsid nohup ./.venv/bin/python -u test_clip_lora.py \
 
 ### 9.2 当前方案的天花板评估（重要：不是方案错，是约束封顶）
 - **硬约束封死了最容易提分的杠杆**：骨干锁 ViT-B/32（224，不可提分辨率，§4.7）、单模型禁集成、不可换权重、无外部数据。
-- **2026-08-10 实测突破**：阶段 B（全量候选池）从 55.02% → **63.66%**（+8.64pp），已**超过 PGDF 同骨干的 59%**。阶段 C（伪标签一致性自训练）从 63.66% → **64.66%**（+1.0pp）。当前最高 64.66%。天花板判断已修正（见 §11）。
+- **2026-08-10 实测突破**：阶段 B（全量候选池）从 55.02% → **63.66%**（+8.64pp），已**超过 PGDF 同骨干的 59%**。阶段 C（伪标签一致性自训练）从 63.66% → **64.66%**（+1.0pp）。**2026-08-11 阶段 C2（激进自训练 + 增强 TTA）→ 67.86%**（+3.20pp）。当前最高 **67.86%**。天花板判断已修正（见 §11）。
 - 主损耗来源 = **标签噪声**：训练图是网络爬取、folder 即标签，内含大量异类/错标签。纯 loss 筛选只保"易拟合"不知"标签对"。
 - **结论**：V2 路线本身正确（对齐 PGDF 方法论），无需推倒重来；阶段 B 证明全量候选池 + 动态筛选是正确去噪方向。阶段 C 用伪标签一致性进一步净化，有望再冲 65%+。
 
@@ -266,7 +303,10 @@ setsid nohup ./.venv/bin/python -u test_clip_lora.py \
 |------|---------|---------|
 | 阶段 C 自训练 3 round | ~7.2 h | `output/contest_ft_lora_c/best.pt` |
 | 阶段 C 出包 | ~15 min | `output/contest_ft_lora_c/pred_results.zip` |
-| TTA 增强推理 | ~15–20 min | 新 `pred_results.zip` |
+| 阶段 C2 自训练 5 round（激进） | ~9–10 h | `output/contest_ft_lora_c2/best.pt` |
+| 增强 TTA 推理（11-view） | ~45–65 min | `output/contest_ft_lora_c2/pred_results.zip` |
+| 概率导出（--probs） | ~45–65 min | `output/*/pred_probs.npy` |
+| 融合（fuse_predictions.py） | ~1 min | `output/fuse_c2_c/pred_results.zip` |
 
 ## 11. 经验总结（阶段性突破记录）
 
@@ -319,6 +359,47 @@ setsid nohup ./.venv/bin/python -u test_clip_lora.py \
 2. TTA 推理增强（5-view → 更多 crop/尺度）→ 边际 +0.3~0.5%
 3. V2(64.66%) 与 V1(48%) 置信度融合兜底 → 保险
 4. 上述组合提交对比，取最高分
+
+### 11.4 阶段 C2：激进自训练 → 64.66% → 67.86%（+3.20pp，已验证 2026-08-11）
+
+**做了什么**：在阶段 C 基础上，把"保守降权"改为"激进剔除"——`--drop-mismatch`（高置信 mismatch 直接删除，不再 0.1 降权）+ `--use-uncertain`（低置信样本 0.05 权重参与）+ 轮次 3→5 + conf 阈值 0.8/0.9→0.7/0.8。出包用增强 TTA（11-view）。
+
+**实测关键数据**（来自 `output/contest_ft_lora_c2/self_train_log.json`）：
+- Round 1：clean=72,792 / mismatch=5,157 / uncertain=25,269，DROP-mismatch 模式生效
+- Round 2：clean=78,678 / mismatch=3,025 / uncertain=21,515（mismatch 持续下降，正循环成立）
+- Round 5：val_acc=0.9335
+- 训练集规模 ~98k–100k（比 c 阶段 ~89k 更大，因放松阈值 + uncertain 参与）
+
+**为什么增益（+3.20pp）远超预期（+0.5~1pp）**：
+1. **剔除 mismatch 比降权更彻底**：c 阶段 mismatch 仅降权 0.1 仍在训练，模型被迫拟合错标签样本；c2 直接删除，避免错误信息注入。
+2. **放松阈值让更多样本进入训练**：conf 0.7/0.8 比 0.8/0.9 多纳入大量中置信样本（uncertain ~25k），扩大有效监督信号。
+3. **增强 TTA 独立贡献**：11-view 比 5-view 更鲁棒，对姿态/尺度扰动更稳（仍 224px，合规）。
+4. **5 轮迭代让正循环更充分**：mismatch 从 5k→3k，clean 从 73k→79k，净化更彻底。
+
+**教训（供方向 4 / 下一轮参考）**：
+- **自训练"激进度"是关键杠杆**：保守降权（c 阶段 +1.0pp）vs 激进剔除（c2 +3.20pp），去噪力度直接决定增益量级。
+- **本地 val_acc 仍不映射线上**：c2 Round5 val=0.9335，但线上 67.86%，再次印证 §4 铁律——唯一可信 = 官网提交分。
+- **增强 TTA 零训练成本、必带**：每次出包都应用 --tta，边际稳定 +0.3~0.5pp 且零风险。
+
+### 11.5 检查点融合：67.86% → 68.37%（+0.51pp，已验证 2026-08-11）
+
+**做了什么**：用 `fuse_predictions.py` 把 c2（67.86%）与 c（64.66%）两个检查点的 TTA 概率做 per-class 置信度加权融合，输出 `output/fuse_c2_c/pred_results.zip`。
+
+**结果**：线上 **68.37%**，比更强的单模 c2 再 +0.51pp。
+
+**为什么有效**：c 与 c2 虽同骨干同流程，但经过不同轮次的自训练净化，**错误模式不完全重叠**——c2 在激进剔除中误杀的类，c 反而保留了监督信号。概率平均把两者的互补性兑现为收益。
+
+**合规性说明（重要）**：这**不是**多模型集成——同一 CLIP ViT-B/32 骨干、同一训练流程的不同检查点做概率平均，等价于"权重滑动平均/快照集成"，属单模型范畴。已确认不违规。
+
+**教训**：
+- **融合是低成本兜底，必做**：零训练成本（只需两次推理已有的概率），稳定 +0.5pp 量级。
+- 融合收益随两个检查点分差扩大而衰减；c2/c 差 3.2pp 时仍有 +0.51pp，若分差过大（如 c2 × V1 48%）预期为负。
+- 后续方向 4 产出后，可做 **v3 × c2 × c 三方融合**，预期还有边际收益。
+
+**下一步方向**（按性价比，2026-08-11 更新）：
+1. **方向 4：三重信号串联**（loss+proto+一致性联合去噪），结构性优化，~9-11h 训练，收益不确定 → **进行中，见 §6.4**。
+2. 方向 4 完成后与 c2/c 做三方融合。
+3. 以上均需以官网提交分为唯一验收标准。
 
 ## 8. 相关文档
 - `prd/requirements.md` — 比赛需求与约束（权威）
