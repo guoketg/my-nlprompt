@@ -1,107 +1,63 @@
-# NLPrompt: Noise-Label Prompt Learning for Vision-Language Models (CVPR 2025 Highlight)
+# NLPrompt — 含噪标签细粒度识别竞赛
 
-This is the official PyTorch implementation for the CVPR 2025 highlight paper: [NLPrompt: Noise-Label Prompt Learning for Vision-Language Models](https://arxiv.org/abs/2412.01256). 
+基于 **CLIP ViT-B/32** 在标签含噪网络图像（500 类自然动植物）上做鲁棒微调，目标线上准确率 75%（当前最优 68.95%）。
 
-![NLPrompt Framework](https://github.com/qunovo/NLPrompt/blob/master/NLPrompt-framework.png?raw=true)
+## 硬约束（赛题规定）
 
-## How to Install
+- 骨干固定为 CLIP `ViT-B/32`（224px，不可提升输入分辨率）。
+- 单模型，禁止多模型集成；无类别名、无外部数据；权重固定为 `/root/weights/ViT-B-32.pt`。
+- 提交格式：无表头 `pred_results.csv`，每行 `filename,label`（label 为 4 位补零类号），压缩为 `pred_results.zip`。
+- **唯一可信指标是官网提交分**；本地 val_acc 因标签含噪而虚假（不要据此判断）。
 
-Make sure [conda](https://www.anaconda.com/distribution/) is installed properly.
-
-```bash
-# Clone this repo
-git clone https://github.com/qunovo/NLPrompt.git
-cd NLPrompt/Dassl.pytorch
-
-# Create a conda environment
-conda create -y -n nlprompt python=3.8
-
-# Activate the environment
-conda activate nlprompt
-
-# Install torch and torchvision
-# Please refer to https://pytorch.org/ if you need a different cuda version
-conda install pytorch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 pytorch-cuda=12.1 -c pytorch -c nvidia
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Install this library 
-python setup.py develop
-
-cd ..
-```
-
-Follow the instructions in [DATASETS.md](https://github.com/KaiyangZhou/CoOp/blob/main/DATASETS.md) to prepare the datasets.
-
-Note that the [Food101N](https://www.kaggle.com/datasets/kuanghueilee/food-101n) dataset needs to be downloaded separately. [Food101N]([Food101N](https://www.kaggle.com/datasets/kuanghueilee/food-101n)) uses the same test set as Food101.
-
-This code is built on top of the [CoOp](https://github.com/KaiyangZhou/CoOp) and [Dassl](https://github.com/KaiyangZhou/Dassl.pytorch). We sincerely appreciate their contributions!
-
-## How to Run
-
-We provide the running scripts in `scripts/nlprompt`. 
-
-You need to make sure the data path is correct before you run it.
-
-Below we provide examples on how to run NLPrompt on the Caltech101 dataset:
-
-**NLPrompt (Caltech101, Sym)**:
-
--  `bash scripts/nlprompt/main.sh caltech101 16 0.50 'sym' 100`
-
-**NLPrompt (Caltech101, Asym)**:
-
--  `bash scripts/nlprompt/main.sh caltech101 16 0.50 'asym' 100`
-
-where the first parameter is the name of the dataset, the second parameter is the number of shots, the third parameter is the noise rate, the fourth parameter is the type of noise and the last parameter is the number of categories of the dataset.
-
-After the experiments, all the results are saved to `output/`.
-
-### Script Configuration (No Hardcoded Path Required)
-
-`scripts/nlprompt/main.sh` accepts runtime parameters:
+## 环境
 
 ```bash
-bash scripts/nlprompt/main.sh <DATASET> <SHOTS> <RATE> <TYPE> <CLASS>
+# 本项目 GPU 任务必须用自有 venv（torch 2.6.0+cu124，H200 MIG 2g.35gb）
+./.venv/bin/python script.py ...
 ```
-
-Environment variables can be used to override defaults:
-
-- `DATA`: dataset root path (default `/path/to/datasets`)
-- `TRAINER`: trainer name (default `NLPrompt`)
-- `CFG`: trainer config name (default `rn50`)
-- `SEED_LIST`: seed list for `main.sh` (default `0 1 2 3 4 5 6 7 8 9`)
-- `REG_E_LIST`: OT entropy regularization sweep for `main.sh`
-- `LR_LIST`: learning-rate sweep for `main.sh`
-
-Example:
-
+长任务后台启动（脱离 SSH 会话）：
 ```bash
-DATA=/your/datasets \
-SEED_LIST="1 2 3" \
-REG_E_LIST="0.001 0.01" \
-LR_LIST="0.0005 0.001" \
-bash scripts/nlprompt/main.sh caltech101 16 0.5 sym 100
+setsid nohup ./.venv/bin/python -u script.py ... > run.log 2>&1 < /dev/null &
 ```
 
-### CLIP Weights Resolution
+## 当前最优方法（C2 自训练线）
 
-In `trainers/nlprompt.py`, CLIP weights are loaded with the following priority:
+纯视觉、去噪 + LoRA 微调 + 多检查点融合：
 
-1. Local file `clip/<BACKBONE_NAME>.pt` (for offline or pre-downloaded usage)
-2. Automatic download from CLIP model registry if local file does not exist
+1. **去噪自训练**（`self_train_v2.py`）：5 轮激进自训练，每轮在 CLIP 提特征上 K-means 去噪，仅保主导物种，`uncertain` 权重 0.05，`mismatch` 直接丢弃。`output/contest_ft_lora_c2/` 产出 `round1~5.pt` + `best.pt`。
+2. **LoRA 微调**（`train_clip_lora.py`）：在去噪样本上 LoRA 微调 CLIP 视觉骨干（目标层 `out_proj/c_fc/c_proj`，rank=8，warmup 5 epoch）。
+3. **增强 TTA 推理**（`test_clip_lora.py`）：11-view（多尺度 1.0/1.33 + 角落 + 翻转 + 轻微 ColorJitter）。
+4. **多检查点 / 多线融合**（`fuse_predictions.py`、`export_c2_probs_swa.py`）：SWA 平均不同 round 的 probs，并与 C 线（stage-2 余弦分类器）动态置信加权融合。
 
-## Citation
+> 当前最优：`c2×round4×c` 三方等权融合 = **68.95%**。
 
-If you find our work useful in your research, please consider citing it!
+## 提交的脚本（当前活跃）
+
+| 文件 | 作用 |
+|------|------|
+| `self_train_v2.py` | C2 去噪自训练（5 轮），产出 `output/contest_ft_lora_c2/` |
+| `train_clip_lora.py` | LoRA 微调 CLIP 视觉骨干 |
+| `test_clip_lora.py` | 增强 TTA 推理，导出 `pred_results.csv/.zip` |
+| `fuse_predictions.py` | 多线（c2 / c）动态置信加权融合 |
+| `export_c2_probs_swa.py` | 导出 C2 全部 checkpoint probs 并做 SWA 融合（冲刺 75% 用） |
+| `request.md` / `format_request.md` | 赛题说明与提交格式 |
+
+## 冲刺 75% 规划
+
+见 [`prd/PLAN_TO_75.md`](prd/PLAN_TO_75.md)（方法修改 + 全新方案 X1 聚类重标等）。
+当前进度与经验沉淀见 [`prd/HANDOVER.md`](prd/HANDOVER.md)。
+
+## 目录
 
 ```
-@inproceedings{pan2025nlprompt,
-  title={NLPrompt: Noise-Label Prompt Learning for Vision-Language Models},
-  author={Pan, Bikang and Li, Qun and Tang, Xiaoying and Huang, Wei and Fang, Zhen and Liu, Feng and Wang, Jingya and Yu, Jingyi and Shi, Ye},
-  booktitle={Proceedings of the Computer Vision and Pattern Recognition Conference},
-  pages={19963--19973},
-  year={2025}
-}
+./
+├── self_train_v2.py / train_clip_lora.py / test_clip_lora.py   # 当前主流程
+├── fuse_predictions.py / export_c2_probs_swa.py                # 融合提交
+├── prd/                # HANDOVER / PLAN / progress 文档
+├── configs/            # Dassl 配置（datasets/trainers）
+├── output/             # 训练产物与提交包（contest_ft_lora_c2 等）
+├── clip/ Dassl.pytorch/ datasets/ trainers/                    # 框架依赖
+└── legacy/             # 早期方案残留（纯视觉原型 / prompt 方案），已弃用
 ```
+
+> `all_class_predictions.json`：早期 API 类别名识别结果，经验证不可靠且重叠，**已弃用**，请勿再使用。
