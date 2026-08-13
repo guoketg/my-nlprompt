@@ -82,7 +82,11 @@ def _collate_pseudo(batch):
 @torch.no_grad()
 def predict_all(model, data_root, paths_all, labels_all, resolution, batch_size,
                 num_workers, amp):
-    """Return (pred_classes, confidences) for every image."""
+    """Return (pred_classes, confidences, softmax_probs) for every image.
+
+    softmax_probs has shape (n_total, n_classes) and serves as the *soft*
+    pseudo-label target for soft-label self-training (distillation).
+    """
     device = next(model.parameters()).device
     is_cuda = device.type == "cuda"
     eval_t = T.Compose([
@@ -98,6 +102,7 @@ def predict_all(model, data_root, paths_all, labels_all, resolution, batch_size,
     n = len(paths_all)
     preds = np.full(n, -1, dtype=np.int32)
     confs = np.full(n, np.nan, dtype=np.float32)
+    probs_all = np.full((n, model.head.out_features), np.nan, dtype=np.float32)
     for batch in loader:
         if batch is None:
             continue
@@ -110,7 +115,8 @@ def predict_all(model, data_root, paths_all, labels_all, resolution, batch_size,
         ii = idxs.numpy().astype(np.int64)
         preds[ii] = p.cpu().numpy().astype(np.int32)
         confs[ii] = c.cpu().numpy().astype(np.float32)
-    return preds, confs
+        probs_all[ii] = probs.cpu().numpy().astype(np.float32)
+    return preds, confs, probs_all
 
 
 # --------------------------------------------------------------------------- #
@@ -183,6 +189,13 @@ def parse_args():
     p.add_argument("--use-uncertain", dest="use_uncertain", action="store_true",
                    default=False,
                    help="include uncertain (low-conf) samples with reduced weight")
+    p.add_argument("--soft-labels", dest="soft_labels", action="store_true",
+                   default=False,
+                   help="use the model's full softmax prediction as a SOFT target "
+                   "(KL distillation) instead of a hard pseudo-label. Mitigates "
+                   "confirmation bias from wrong hard labels (HANDOVER S11.6).")
+    p.add_argument("--soft-temp", type=float, default=1.0,
+                   help="temperature for softening the soft target (T>1 = smoother)")
     # LoRA
     p.add_argument("--lora-rank", type=int, default=8)
     p.add_argument("--lora-alpha", type=float, default=16.0)
@@ -272,11 +285,19 @@ def main():
         )
         scaler = torch.amp.GradScaler("cuda", enabled=args.amp and device.startswith("cuda"))
 
-        preds, confs = predict_all(model, args.data_root, paths_all, labels_all,
-                                   args.resolution, args.batch_size,
-                                   args.num_workers, args.amp)
+        pred_preds = predict_all(model, args.data_root, paths_all, labels_all,
+                                  args.resolution, args.batch_size,
+                                  args.num_workers, args.amp)
+        preds, confs, probs_all = pred_preds
+        soft_targets_all = None
+        if args.soft_labels:
+            # soften + normalize the model's prediction distribution
+            if args.soft_temp != 1.0:
+                probs_all = probs_all ** (1.0 / args.soft_temp)
+            soft_targets_all = probs_all / probs_all.sum(axis=1, keepdims=True)
         n_valid = int((~np.isnan(confs)).sum())
-        print(f"[predict] valid predictions: {n_valid}/{n_total}")
+        print(f"[predict] valid predictions: {n_valid}/{n_total}"
+              + ("  [SOFT labels]" if args.soft_labels else ""))
 
         # ---- Step 2: consistency cleaning --------------------------------
         clean_mask, mismatch_mask, uncertain_mask = consistency_clean(
@@ -312,13 +333,15 @@ def main():
             break
 
         class _TrainDS(torch.utils.data.Dataset):
-            def __init__(self, idxs, paths, labels, transform, data_root, weights):
+            def __init__(self, idxs, paths, labels, transform, data_root, weights,
+                         soft_targets=None):
                 self.idxs = idxs
                 self.paths = paths
                 self.labels = labels
                 self.transform = transform
                 self.data_root = data_root
                 self.weights = weights
+                self.soft_targets = soft_targets  # (n_total, n_classes) or None
 
             def __len__(self):
                 return len(self.idxs)
@@ -327,6 +350,10 @@ def main():
                 try:
                     img = Image.open(os.path.join(self.data_root,
                                                   self.paths[self.idxs[i]])).convert("RGB")
+                    if self.soft_targets is not None:
+                        return (self.transform(img),
+                                self.soft_targets[self.idxs[i]].astype(np.float32),
+                                self.weights[i])
                     return (self.transform(img), int(self.labels[self.idxs[i]]),
                             self.weights[i])
                 except Exception:
@@ -337,12 +364,17 @@ def main():
             if not batch:
                 return None
             imgs = torch.stack([b[0] for b in batch])
-            labels = torch.tensor([b[1] for b in batch], dtype=torch.long)
+            if isinstance(batch[0][1], np.ndarray):
+                labels = torch.tensor(np.stack([b[1] for b in batch]),
+                                      dtype=torch.float32)  # soft targets
+            else:
+                labels = torch.tensor([b[1] for b in batch], dtype=torch.long)
             weights = torch.tensor([b[2] for b in batch], dtype=torch.float32)
             return imgs, labels, weights
 
         train_ds = _TrainDS(train_idx, paths_all, labels_all, train_t,
-                            args.data_root, sample_weights)
+                            args.data_root, sample_weights,
+                            soft_targets=soft_targets_all)
         train_loader = DataLoader(train_ds, batch_size=args.batch_size,
                                   shuffle=True, num_workers=args.num_workers,
                                   collate_fn=_collate, pin_memory=True,
@@ -400,7 +432,11 @@ def main():
                 optimizer.zero_grad(set_to_none=True)
                 with torch.cuda.amp.autocast(enabled=scaler.is_enabled()):
                     logits = model(imgs)
-                    loss_vec = criterion(logits, labels)
+                    if labels.dim() == 2:  # soft targets: KL distillation
+                        logp = torch.log_softmax(logits, dim=1)
+                        loss_vec = -(labels * logp).sum(dim=1)
+                    else:  # hard pseudo-labels
+                        loss_vec = criterion(logits, labels)
                     loss = (loss_vec * weights).mean()
                 scaler.scale(loss).backward()
                 scaler.step(optimizer)

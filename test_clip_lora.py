@@ -65,12 +65,13 @@ def _jittered(size):
     ]
 
 
-def tta_transforms(size, enhanced=False):
-    if not enhanced:
+def tta_transforms(size, enhanced=False, enhanced2=False):
+    if not enhanced and not enhanced2:
         return _base_tta(size)
     # Enhanced TTA: base 5 views + multi-scale corners (1.0, 1.33) + jitter
     tfms = list(_base_tta(size))
-    for scale in (1.0, 1.33):
+    scales = (1.0, 1.15, 1.33, 1.5) if enhanced2 else (1.0, 1.33)
+    for scale in scales:
         tfms += _corner_crops(size, scale)
     tfms += _jittered(size)
     return tfms
@@ -90,7 +91,7 @@ class _TestTTA(torch.utils.data.Dataset):
 
 
 @torch.no_grad()
-def predict(ckpt, data_root, resolution, batch_size, num_workers, amp, tta_enhanced=False):
+def predict(ckpt, data_root, resolution, batch_size, num_workers, amp, tta_enhanced=False, tta_enhanced2=False):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     clip_model = cc.load_clip_to_cpu("/root/weights/ViT-B-32.pt", device="cpu").float()
     model = tl.CLIPLoRAClassifier(clip_model, 500).to(device)
@@ -104,7 +105,7 @@ def predict(ckpt, data_root, resolution, batch_size, num_workers, amp, tta_enhan
 
     test_paths = build_test_list(data_root)
     basenames = [os.path.basename(p) for p in test_paths]
-    tfms = tta_transforms(resolution, enhanced=tta_enhanced)
+    tfms = tta_transforms(resolution, enhanced=tta_enhanced, enhanced2=tta_enhanced2)
     all_logits = np.zeros((len(test_paths), 500), dtype=np.float32)
     for t in tfms:
         ds = _TestTTA(test_paths, t)
@@ -138,6 +139,8 @@ def main():
     p.add_argument("--amp", dest="amp", action="store_true", default=True)
     p.add_argument("--tta", dest="tta", action="store_true", default=False,
                    help="enhanced TTA: multi-scale corner crops + color jitter (still 224px)")
+    p.add_argument("--tta2", dest="tta2", action="store_true", default=False,
+                   help="enhanced TTA v2: 4-scale (1.0/1.15/1.33/1.5) corners + jitter (14 views)")
     p.add_argument("--probs", dest="probs", action="store_true", default=False,
                    help="also export TTA-averaged softmax probabilities to pred_probs.npy")
     args = p.parse_args()
@@ -145,7 +148,8 @@ def main():
     os.makedirs(out_dir, exist_ok=True)
 
     names, preds, logits = predict(args.ckpt, args.data_root, args.resolution,
-                                   args.batch_size, args.num_workers, args.amp, args.tta)
+                                   args.batch_size, args.num_workers, args.amp,
+                                   args.tta, args.tta2)
 
     csv_path = os.path.join(out_dir, "pred_results.csv")
     with open(csv_path, "w") as f:

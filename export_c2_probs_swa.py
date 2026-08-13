@@ -19,31 +19,32 @@ import zipfile
 import csv
 import numpy as np
 
-import test_clip_lora as tt
-
 C2_DIR = "output/contest_ft_lora_c2"
 CKPTS = ["round1.pt", "round2.pt", "round3.pt", "round4.pt", "round5.pt", "best.pt"]
 
 
-def export_all(data_root, resolution, batch_size, num_workers):
+def export_all(data_root, resolution, batch_size, num_workers, tta2=False):
+    import test_clip_lora as tt  # lazy: only needed for --export (needs contest_clip present)
     names = None
+    suffix = "_tta2" if tta2 else ""
     for ck in CKPTS:
         ckpt = os.path.join(C2_DIR, ck)
         if not os.path.isfile(ckpt):
             print(f"[skip] missing {ckpt}")
             continue
-        out_dir = os.path.join(C2_DIR, "probs_" + ck.replace(".pt", ""))
+        out_dir = os.path.join(C2_DIR, "probs_" + ck.replace(".pt", "") + suffix)
         prob_path = os.path.join(out_dir, "pred_probs.npy")
         if os.path.isfile(prob_path):
             print(f"[skip] {prob_path} exists")
             continue
         os.makedirs(out_dir, exist_ok=True)
         nms, preds, logits = tt.predict(
-            ckpt, data_root, resolution, batch_size, num_workers, True, tta_enhanced=True)
+            ckpt, data_root, resolution, batch_size, num_workers, True,
+            tta_enhanced=(not tta2), tta_enhanced2=tta2)
         probs = tt.softmax(logits, axis=1)
         np.save(prob_path, probs)
         names = nms
-        print(f"[export] {ck} -> {prob_path} shape={probs.shape}")
+        print(f"[export] {ck} (tta2={tta2}) -> {prob_path} shape={probs.shape}")
     # save names once (aligned across all ckpts)
     if names is not None:
         with open(os.path.join(C2_DIR, "test_names.txt"), "w") as f:
@@ -65,13 +66,13 @@ def _load_names():
         return [l.strip() for l in f if l.strip()]
 
 
-def fuse(mode, alpha):
+def fuse(mode, alpha, suffix=""):
     names = _load_names()
     n = len(names)
     mats = []
     used = []
     for ck in CKPTS:
-        pp = os.path.join(C2_DIR, "probs_" + ck.replace(".pt", ""), "pred_probs.npy")
+        pp = os.path.join(C2_DIR, "probs_" + ck.replace(".pt", "") + suffix, "pred_probs.npy")
         if not os.path.isfile(pp):
             print(f"[skip] no probs for {ck}")
             continue
@@ -82,13 +83,13 @@ def fuse(mode, alpha):
     print(f"[fuse] using {used}")
     if mode == "all":
         fused = np.mean(mats, axis=0)
-        tag = "swa_all6"
+        tag = "swa_all6" + suffix
     elif mode == "best5":
         # best gets alpha, the other 5 share (1-alpha)
         w = np.ones(len(mats)) * ((1 - alpha) / (len(mats) - 1))
         w[used.index("best.pt")] = alpha
-        fused = np.sum(wi * mi for wi, mi in zip(w, mats))
-        tag = f"swa_best{int(alpha*100)}"
+        fused = sum(wi * mi for wi, mi in zip(w, mats))
+        tag = f"swa_best{int(alpha*100)}" + suffix
     else:
         raise SystemExit(f"unknown mode {mode}")
     preds = fused.argmax(1)
@@ -117,11 +118,14 @@ def main():
     p.add_argument("--resolution", type=int, default=224)
     p.add_argument("--batch-size", type=int, default=128)
     p.add_argument("--num-workers", type=int, default=4)
+    p.add_argument("--tta2", action="store_true",
+                   help="use 4-scale (14-view) enhanced TTA for export/fuse")
     a = p.parse_args()
+    suffix = "_tta2" if a.tta2 else ""
     if a.export:
-        export_all(a.data_root, a.resolution, a.batch_size, a.num_workers)
+        export_all(a.data_root, a.resolution, a.batch_size, a.num_workers, a.tta2)
     if a.fuse:
-        fuse(a.fuse, a.alpha)
+        fuse(a.fuse, a.alpha, suffix)
     if not a.export and not a.fuse:
         print("specify --export and/or --fuse")
 
