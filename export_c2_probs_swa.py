@@ -23,16 +23,16 @@ C2_DIR = "output/contest_ft_lora_c2"
 CKPTS = ["round1.pt", "round2.pt", "round3.pt", "round4.pt", "round5.pt", "best.pt"]
 
 
-def export_all(data_root, resolution, batch_size, num_workers, tta2=False):
+def export_all(data_root, resolution, batch_size, num_workers, tta2=False, c2_dir=C2_DIR):
     import test_clip_lora as tt  # lazy: only needed for --export (needs contest_clip present)
     names = None
     suffix = "_tta2" if tta2 else ""
     for ck in CKPTS:
-        ckpt = os.path.join(C2_DIR, ck)
+        ckpt = os.path.join(c2_dir, ck)
         if not os.path.isfile(ckpt):
             print(f"[skip] missing {ckpt}")
             continue
-        out_dir = os.path.join(C2_DIR, "probs_" + ck.replace(".pt", "") + suffix)
+        out_dir = os.path.join(c2_dir, "probs_" + ck.replace(".pt", "") + suffix)
         prob_path = os.path.join(out_dir, "pred_probs.npy")
         if os.path.isfile(prob_path):
             print(f"[skip] {prob_path} exists")
@@ -47,18 +47,18 @@ def export_all(data_root, resolution, batch_size, num_workers, tta2=False):
         print(f"[export] {ck} (tta2={tta2}) -> {prob_path} shape={probs.shape}")
     # save names once (aligned across all ckpts)
     if names is not None:
-        with open(os.path.join(C2_DIR, "test_names.txt"), "w") as f:
+        with open(os.path.join(c2_dir, "test_names.txt"), "w") as f:
             for n in names:
                 f.write(n + "\n")
         print(f"[names] saved {len(names)} test names")
 
 
-def _load_names():
-    p = os.path.join(C2_DIR, "test_names.txt")
+def _load_names(c2_dir=C2_DIR):
+    p = os.path.join(c2_dir, "test_names.txt")
     if not os.path.isfile(p):
         # fallback: reuse any existing pred_results.csv order
         for ck in CKPTS:
-            cand = os.path.join(C2_DIR, "probs_" + ck.replace(".pt", ""), "pred_probs.npy")
+            cand = os.path.join(c2_dir, "probs_" + ck.replace(".pt", ""), "pred_probs.npy")
             if os.path.isfile(cand):
                 pass
         raise SystemExit("test_names.txt missing; run --export first")
@@ -66,13 +66,13 @@ def _load_names():
         return [l.strip() for l in f if l.strip()]
 
 
-def fuse(mode, alpha, suffix=""):
-    names = _load_names()
+def fuse(mode, alpha, suffix="", c2_dir=C2_DIR):
+    names = _load_names(c2_dir)
     n = len(names)
     mats = []
     used = []
     for ck in CKPTS:
-        pp = os.path.join(C2_DIR, "probs_" + ck.replace(".pt", "") + suffix, "pred_probs.npy")
+        pp = os.path.join(c2_dir, "probs_" + ck.replace(".pt", "") + suffix, "pred_probs.npy")
         if not os.path.isfile(pp):
             print(f"[skip] no probs for {ck}")
             continue
@@ -81,15 +81,16 @@ def fuse(mode, alpha, suffix=""):
         mats.append(m)
         used.append(ck)
     print(f"[fuse] using {used}")
+    short = os.path.basename(c2_dir.rstrip("/"))
     if mode == "all":
         fused = np.mean(mats, axis=0)
-        tag = "swa_all6" + suffix
+        tag = f"swa_all6_{short}" + suffix
     elif mode == "best5":
         # best gets alpha, the other 5 share (1-alpha)
         w = np.ones(len(mats)) * ((1 - alpha) / (len(mats) - 1))
         w[used.index("best.pt")] = alpha
         fused = sum(wi * mi for wi, mi in zip(w, mats))
-        tag = f"swa_best{int(alpha*100)}" + suffix
+        tag = f"swa_best{int(alpha*100)}_{short}" + suffix
     else:
         raise SystemExit(f"unknown mode {mode}")
     preds = fused.argmax(1)
@@ -115,6 +116,8 @@ def main():
     p.add_argument("--alpha", type=float, default=0.4,
                    help="weight for best.pt in best5 mode")
     p.add_argument("--data-root", default="/root/datasets/contest")
+    p.add_argument("--ckpt-dir", default=C2_DIR,
+                   help="directory holding {round1..5,best}.pt checkpoints to export/fuse")
     p.add_argument("--resolution", type=int, default=224)
     p.add_argument("--batch-size", type=int, default=128)
     p.add_argument("--num-workers", type=int, default=4)
@@ -123,9 +126,9 @@ def main():
     a = p.parse_args()
     suffix = "_tta2" if a.tta2 else ""
     if a.export:
-        export_all(a.data_root, a.resolution, a.batch_size, a.num_workers, a.tta2)
+        export_all(a.data_root, a.resolution, a.batch_size, a.num_workers, a.tta2, a.ckpt_dir)
     if a.fuse:
-        fuse(a.fuse, a.alpha, suffix)
+        fuse(a.fuse, a.alpha, suffix, a.ckpt_dir)
     if not a.export and not a.fuse:
         print("specify --export and/or --fuse")
 

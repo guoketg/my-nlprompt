@@ -189,6 +189,13 @@ def parse_args():
     p.add_argument("--use-uncertain", dest="use_uncertain", action="store_true",
                    default=False,
                    help="include uncertain (low-conf) samples with reduced weight")
+    p.add_argument("--mismatch-weight", type=float, default=0.1,
+                   help="sample weight for high-conf mismatch (likely noise) when "
+                        "NOT dropping them. 1.0 = keep full signal. Direction C uses "
+                        "a high value (0.6~0.9) to KEEP hard samples instead of deleting.")
+    p.add_argument("--uncertain-weight", type=float, default=0.05,
+                   help="sample weight for low-conf uncertain samples. Direction C "
+                        "uses a higher value (0.3~0.5) to retain their supervision.")
     p.add_argument("--soft-labels", dest="soft_labels", action="store_true",
                    default=False,
                    help="use the model's full softmax prediction as a SOFT target "
@@ -316,16 +323,20 @@ def main():
             sw = np.ones(n_total, dtype=np.float32)
             sw[uncertain_mask] = 0.05
         else:
+            # Direction C: KEEP ALL samples, only down-weight noise/uncertain
+            # (no deletion of hard samples — preserves their supervision signal)
             train_mask = clean_mask | mismatch_mask
             if args.use_uncertain:
                 train_mask |= uncertain_mask
             sw = np.ones(n_total, dtype=np.float32)
-            sw[mismatch_mask] = 0.1
-            sw[uncertain_mask] = 0.05
+            sw[mismatch_mask] = args.mismatch_weight
+            sw[uncertain_mask] = args.uncertain_weight
         train_idx = np.where(train_mask)[0]
         sample_weights = torch.tensor(sw[train_idx], dtype=torch.float32)
         print(f"[train] training on {len(train_idx)} samples "
-              f"({'DROP mismatch' if args.drop_mismatch else 'w/ mismatch downweight'})")
+              f"({'DROP mismatch' if args.drop_mismatch else 'w/ mismatch downweight'}"
+              f" mismatch_w={sw[mismatch_mask].mean() if mismatch_mask.any() else 1.0:.2f}"
+              f" uncertain_w={sw[uncertain_mask].mean() if uncertain_mask.any() else 1.0:.2f})")
 
         # ---- Step 3: train on cleaned set --------------------------------
         if len(train_idx) < args.batch_size:
